@@ -12,7 +12,7 @@
         public int EstimatedHours { get; set; }
 
         // Külső kulcs az ügyfélhez
-        public Guid CustomerId { get; set; }
+        public int CustomerId { get; set; }
         public Customer? Customer { get; set; }
     }
 }
