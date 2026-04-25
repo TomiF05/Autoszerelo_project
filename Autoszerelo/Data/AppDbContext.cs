@@ -1,0 +1,23 @@
+﻿using Autoszerelo.models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Autoszerelo.Data
+{
+    public class AppDbContext : DbContext
+    {
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+        {
+        }
+
+        // Ezek lesznek az adatbázis táblái
+        public DbSet<Customer> Customers { get; set; }
+        public DbSet<Works> Works { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Itt lehetne finomhangolni a táblákat, de alapból így is jó
+        }
+    }
+}
