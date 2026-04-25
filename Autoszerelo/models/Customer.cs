@@ -9,7 +9,7 @@ namespace Autoszerelo.models
 
         public string Address { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
-        [JsonIgnore]
+        
         public virtual ICollection<Works> Works { get; set; } = new List<Works>();
     }
 }

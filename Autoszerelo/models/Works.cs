@@ -11,8 +11,10 @@ namespace Autoszerelo.models
 
         // Ez a kategória határozza meg a munkaidőt (Body, Engine, etc.)
         public string Category { get; set; } = string.Empty;
-        public int EstimatedHours { get; set; }
-
+        
+        public int seriousness { get; set; }
+        public Double EstimatedHours { get; set; }
+        public string status { get; set; } = "Felvett"; // Pl. "Folyamatban", "Kész", "Várakozó"
         // Külső kulcs az ügyfélhez
         public int CustomerId { get; set; }
         
