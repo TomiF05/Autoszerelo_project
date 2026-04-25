@@ -1,4 +1,6 @@
-﻿namespace Autoszerelo.models
+﻿using System.Text.Json.Serialization;
+
+namespace Autoszerelo.models
 {
     public class Works
     {
@@ -13,6 +15,7 @@
 
         // Külső kulcs az ügyfélhez
         public int CustomerId { get; set; }
-        public Customer? Customer { get; set; }
+        
+        
     }
 }
