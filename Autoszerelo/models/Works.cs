@@ -1,8 +1,6 @@
-﻿using Autoszerelo.models;
-
-namespace Autoszerelo.Models
+﻿namespace Autoszerelo.models
 {
-    public class WorkOrder
+    public class Works
     {
         public int Id { get; set; }
         public string LicensePlate { get; set; } = string.Empty; // XXX-111
