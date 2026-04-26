@@ -20,15 +20,65 @@ namespace Autoszerelo.Controllers
             _context = context;
         }
 
-        // --- Összes munka lekérése az ügyfél adataival együtt ---
+        //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Works>>> GetWorks()
+        public async Task<ActionResult<IEnumerable<Works>>> GetWorks(
+        string? licensePlate = null,
+        int? productionYear=null,
+        int? serousness=null,
+        string? faultDescription = null,
+        string? category = null,
+        string? status = null,
+        int? customerId=null
+            )
         {
-            return await _context.Works
-               // .Include(w => w.Customer) // <--- Ez a kulcsszó! Ezzel húzza be az ügyfél nevét, emailjét is.
-                .ToListAsync();
-        }
+            // 1. Alap lekérdezés létrehozása (még nem fut le az adatbázison)
+            var query = _context.Works.AsQueryable();
 
+            // 2. Szűrés rendszámra (töredék keresés)
+            if (!string.IsNullOrWhiteSpace(licensePlate))
+            {
+                query = query.Where(w => w.LicensePlate.ToUpper().Contains(licensePlate.ToUpper()));
+            }
+
+            if ((productionYear).HasValue)
+            {
+                query = query.Where(w => w.ProductionYear==productionYear);
+            }
+
+            if ((serousness).HasValue)
+            {
+                query = query.Where(w => w.seriousness == serousness);
+            }
+
+            if ((customerId).HasValue)
+            {
+                query = query.Where(w => w.CustomerId == customerId);
+            }
+
+
+            // 3. Szűrés hiba leírására (töredék keresés)
+
+
+            // 4. Szűrés kategóriára (pontos egyezés vagy töredék)
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                query = query.Where(w => w.Category.ToUpper().Contains(category.ToUpper()));
+            }
+
+            // 5. Szűrés státuszra
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(w => w.Status.ToUpper().Contains(status.ToUpper()));
+            }
+
+
+
+            // 6. A kész lekérdezés lefuttatása és az eredmény visszaadása
+            var results = await query.ToListAsync();
+
+            return Ok(results);
+        }
         // --- Új munka felvétele (Validációval) ---
         [HttpPost]
         public async Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear,string description,string category,int seriousness110,int customerId)
@@ -59,12 +109,7 @@ namespace Autoszerelo.Controllers
                 return BadRequest("Érvénytelen súlyosság!(ez egy 1 ls 10 közötti egész szám)");
             }
 
-            // 2. Létezik-e az ügyfél, akihez a munkát kötjük? (FONTOS!)
-            //var customerExists = await _context.Customers.AnyAsync(c => c.Id == customerId);
-            //if (!customerExists)
-            //{
-            //    return BadRequest("A megadott ügyfél (CustomerId) nem létezik az adatbázisban!");
-            //}
+            
             var existingCustomer = await _context.Customers.FindAsync(customerId);
 
             if (existingCustomer == null)
@@ -124,23 +169,29 @@ namespace Autoszerelo.Controllers
             return Ok(work);
         }
 
-        // GET: api/Works/customer/5
+        // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
         [HttpGet("customer/{id}")]
-        public async Task<ActionResult<Works>> GetCustomerByWorkId(int id)
+        public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
         {
-            var work = await _context.Works.FindAsync(id);
+            // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
+            var work = await _context.Works
+                .Include(w => w.Customer)
+                .FirstOrDefaultAsync(w => w.Id == id);
 
             if (work == null)
             {
                 return NotFound("Nincs ilyen munka!");
             }
 
-            // 2. Kikeressük az ügyfelet a Customers táblából a munkában talált ID-val
-            var customer = await _context.Customers.FindAsync(work.CustomerId);
+            if (work.Customer == null)
+            {
+                return NotFound("Ehhez a munkához nem tartozik ügyfél!");
+            }
 
-            return Ok(customer);
+            // Mivel az Include-dal betöltöttük, egyszerűen visszaadjuk a Customer-t
+            return Ok(work.Customer);
         }
-
+        //megadja id alapján a munkát
         [HttpGet("{id}")]
         public async Task<ActionResult<Works>> GetWorkById(int id)
         {
@@ -155,7 +206,7 @@ namespace Autoszerelo.Controllers
 
             return Ok(work);
         }
-
+        //id alpján töröl
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWork(int id)
         {
@@ -173,7 +224,7 @@ namespace Autoszerelo.Controllers
 
             return Ok($"A(z) {id} azonosítójú munka sikeresen törölve.");
         }
-
+        // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutWork(
         int id,
@@ -300,7 +351,7 @@ namespace Autoszerelo.Controllers
                 return BadRequest($"Hiba a mentés során: {ex.Message}");
             }
         }
-
+        //státusz léptető
         [HttpPut("change-status/{id}")]
         public async Task<ActionResult<Works>> ChangeStatus(int id)
         {
