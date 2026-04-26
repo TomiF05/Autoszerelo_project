@@ -91,7 +91,7 @@ namespace Autoszerelo.Controllers
 
         // GET: api/Customer/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<Customer>> GetCustomerWithCars(int id)
         {
             // Megkeressük az ügyfelet az ID alapján, és "hozzácsapjuk" a munkáit is
             var customer = await _context.Customers

@@ -14,10 +14,10 @@ namespace Autoszerelo.models
         
         public int seriousness { get; set; }
         public Double EstimatedHours { get; set; }
-        public string status { get; set; } = "Felvett"; // Pl. "Folyamatban", "Kész", "Várakozó"
+        public string Status { get; set; } = "Felvett"; 
         // Külső kulcs az ügyfélhez
         public int CustomerId { get; set; }
-        
-        
+
+       
     }
 }
