@@ -18,7 +18,7 @@ namespace Autoszerelo.Controllers
             _context = context;
         }
 
-        // --- LEKÉRÉS (Összes ügyfél) ---
+        // --- LEKÉRÉS (Összes ügyfél, ha nem adunk meg szűrőt, vagy szűrés névre, címre, emailre opcionálisan) ---
         [HttpGet]
         [HttpGet]
         [HttpGet]
@@ -88,7 +88,7 @@ namespace Autoszerelo.Controllers
             
             return Ok(customer);
         }
-
+        //id alapján megkeresi az ügyfelet és a hozzá tartozó összes autót
         // GET: api/Customer/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomerWithCars(int id)
@@ -104,6 +104,63 @@ namespace Autoszerelo.Controllers
             }
 
             return Ok(customer);
+        }
+        // --- FRISSÍTÉS (Részleges, csak a megadott mezőket frissíti) ---
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCustomer(
+    int id,
+    string? name = null,
+    string? address = null,
+    string? email = null)
+        {
+            // 1. Megkeressük az ügyfelet
+            var customer = await _context.Customers.FindAsync(id);
+
+            if (customer == null)
+            {
+                return NotFound($"Nincs ügyfél ezzel az azonosítóval: {id}");
+            }
+
+            // 2. Csak a kitöltött mezőket frissítjük
+            if (!string.IsNullOrWhiteSpace(name) && name != "string")
+            {
+                customer.Name = name;
+            }
+
+            if (!string.IsNullOrWhiteSpace(address) && address != "string")
+            {
+                customer.Address = address;
+            }
+
+            if (!string.IsNullOrWhiteSpace(email) && email != "string")
+            {
+                // Itt akár egy kis extra validáció: van-e benne @?
+                if (!email.Contains("@")) return BadRequest("Érvénytelen email formátum!");
+                customer.Email = email;
+            }
+
+            // 3. Mentés
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(customer);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Hiba a mentés során: {ex.Message}");
+            }
+        }
+        //ügyfelet töröl munkákkal együtt
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            var customer = await _context.Customers.FindAsync(id);
+            if (customer == null) return NotFound();
+
+            _context.Customers.Remove(customer); // Az EF szól az adatbázisnak: "Töröld az 1-es ügyfelet!"
+            await _context.SaveChangesAsync();    // Az SQLite pedig törli az 1-est és az összes hozzá kötött autót is.
+
+            return Ok("Ügyfél és autói törölve.");
         }
     }
 }
