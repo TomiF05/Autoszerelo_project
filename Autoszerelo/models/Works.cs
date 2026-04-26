@@ -18,6 +18,6 @@ namespace Autoszerelo.models
         // Külső kulcs az ügyfélhez
         public int CustomerId { get; set; }
 
-       
+        public virtual Customer? Customer { get; set; }
     }
 }
