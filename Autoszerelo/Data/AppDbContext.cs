@@ -16,6 +16,11 @@ namespace Autoszerelo.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Works>()
+        .HasOne(w => w.Customer)     // A munkának van egy ügyfele
+        .WithMany(c => c.Works)      // Az ügyfélnek sok munkája van
+        .HasForeignKey(w => w.CustomerId)
+        .OnDelete(DeleteBehavior.Cascade); // <--- EZ A KULCS: Kaszkádolt törlés
 
             // Itt lehetne finomhangolni a táblákat, de alapból így is jó
         }
