@@ -15,6 +15,44 @@ namespace Autoszerelo.Controllers
         private readonly AppDbContext _context;
         private readonly string[] allowedCategories = new[] { "motor", "karosszéria", "futómű", "fékberendezés" };
         private const string pattern = @"^([A-Z]{3}-\d{3}|[A-Z]{2}-[A-Z]{2}-\d{3})$";
+
+        private double CalculateMultiplier(string category, int seriousness, int productionYear)
+        {
+            category = category.ToLower();
+
+            // 1. Alap szorzó kategória alapján
+            double multiplier = category switch
+            {
+                "karosszéria" => 3,
+                "motor" => 8,
+                "futómű" => 6,
+                "fékberendezés" => 4,
+                _ => 1.0 // Biztonsági default, ha ismeretlen kategória jönne
+            };
+
+            // 2. Súlyosság szorzó
+            multiplier *= seriousness switch
+            {
+                10 => 1.0,
+                > 7 => 0.8,
+                > 4 => 0.6,
+                > 2 => 0.4,
+                _ => 0.2
+            };
+
+            // 3. Kor szorzó
+            int age = DateTime.Now.Year - productionYear;
+            multiplier *= age switch
+            {
+                < 5 => 0.5,
+                < 10 => 1.0,
+                < 20 => 1.5,
+                _ => 2.0
+            };
+
+            return multiplier;
+        }
+
         public WorksController(AppDbContext context)
         {
             _context = context;
@@ -122,34 +160,7 @@ namespace Autoszerelo.Controllers
             {
                 return BadRequest("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.");
             }
-            category = category.ToLower();
-            double ehours = category switch
-            {
-                "karosszéria" => 3,
-                "motor" => 8,
-                "futómű" => 6,
-                "fékberendezés" => 4,
-                
-            };
-
-            double serious = seriousness110 switch
-            {
-                10 => 1.0,   // Fixen 10-es értékre
-                > 7 => 0.8,   // 7-nél nagyobb (8, 9)
-                > 4 => 0.6,   // 4-nél nagyobb (5, 6, 7)
-                > 2 => 0.4,   // 2-nél nagyobb (3, 4)
-                _ => 0.2    // Minden másra (2 vagy az alatti)
-            };
-
-            int age = DateTime.Now.Year - productionyear;
-
-            double ageMultiplier = age switch
-            {
-                < 5 => 0.5,
-                < 10 => 1.0,
-                < 20 => 1.5,
-                _ => 2.0  // Ez a "default", mindenre, ami 20 vagy több
-            };
+           
             //work.Customer = existingCustomer;
             var work = new Works
             {
@@ -158,7 +169,7 @@ namespace Autoszerelo.Controllers
                 FaultDescription = description,
                 Category = category,
                 seriousness = seriousness110,
-                EstimatedHours = ehours*ageMultiplier*serious,
+                EstimatedHours = CalculateMultiplier(category, seriousness110, productionyear),
                 CustomerId = customerId
             };
             
@@ -297,37 +308,9 @@ namespace Autoszerelo.Controllers
                 }
                 work.Category = category;
             }
-            double multiplier = 1;
-            multiplier*= work.Category switch
-            {
-                "karosszéria" => 3,
-                "motor" => 8,
-                "futómű" => 6,
-                "fékberendezés" => 4,
-                
-            };
+          
 
-            multiplier*= work.seriousness switch
-            {
-                10 => 1.0,   // Fixen 10-es értékre
-                > 7 => 0.8,   // 7-nél nagyobb (8, 9)
-                > 4 => 0.6,   // 4-nél nagyobb (5, 6, 7)
-                > 2 => 0.4,   // 2-nél nagyobb (3, 4)
-                _ => 0.2    // Minden másra (2 vagy az alatti)
-            };
-
-            int age = (int)(DateTime.Now.Year - work.ProductionYear);
-
-            multiplier *= age switch
-            {
-                < 5 => 0.5,
-                < 10 => 1.0,
-                < 20 => 1.5,
-                _ => 2.0  // Ez a "default", mindenre, ami 20 vagy több
-            };
-
-            
-                work.EstimatedHours = multiplier;
+            work.EstimatedHours = CalculateMultiplier(work.Category,work.seriousness,work.ProductionYear);
             
 
             if (customerId.HasValue)
