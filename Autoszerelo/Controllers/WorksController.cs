@@ -174,7 +174,7 @@ namespace Autoszerelo.Controllers
             };
             
             // 3. Mentés
-            _context.Works.Add(work);
+            await _context.Works.AddAsync(work);
             await _context.SaveChangesAsync();
 
             return Ok(work);
