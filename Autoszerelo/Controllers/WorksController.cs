@@ -122,7 +122,7 @@ namespace Autoszerelo.Controllers
         public async Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear,string description,string category,int seriousness110,int customerId)
         {
 
-            // Regex magyarázat:
+            // Regex magyarázat: ez statikus változó lesz
             // ^[A-Z]{3}-\d{3}$          -> Régi formátum (pl. ABC-123)
             // ^[A-Z]{2}-[A-Z]{2}-\d{3}$ -> Új formátum (pl. AA-BB-123)
            
