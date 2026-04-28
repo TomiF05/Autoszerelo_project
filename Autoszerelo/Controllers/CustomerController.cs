@@ -82,7 +82,7 @@ namespace Autoszerelo.Controllers
                 Email = email
             };
             // 2. Mentés az SQLite adatbázisba
-            _context.Customers.Add(customer);
+            await _context.Customers.AddAsync(customer);
             await _context.SaveChangesAsync();
 
             
