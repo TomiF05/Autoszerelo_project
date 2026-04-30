@@ -161,5 +161,15 @@ namespace Autoszerelo.Data
             }
             await _context.SaveChangesAsync();
         }
+
+        public Task<bool> IdExists(int id)
+        {
+            return _context.Works.AnyAsync(w => w.Id == id);
+        }
+
+        double IWorksRepository.CalculateMultiplier(string category, int seriousness, int productionYear)
+        {
+            return CalculateMultiplier(category, seriousness, productionYear);
+        }
     }
 }
