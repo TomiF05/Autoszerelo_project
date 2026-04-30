@@ -9,50 +9,29 @@ namespace Autoszerelo.Services
         private readonly ICustomerRepository _customerRepository;
         private readonly AppDbContext _context;
 
-        public CustomerService(AppDbContext context)
+        public CustomerService(ICustomerRepository customerRepository)
         {
-            _context = context;
+            _customerRepository = customerRepository;
+           // _context = context;
         }
 
         // --- Összes ügyfél lekérése szűréssel ---
         public async Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email)
         {
-            var query = _context.Customers.AsQueryable();
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
-            }
-
-            if (!string.IsNullOrEmpty(address))
-            {
-                query = query.Where(c => c.Address.ToLower().Contains(address.ToLower()));
-            }
-
-            if (!string.IsNullOrEmpty(email))
-            {
-                query = query.Where(c => c.Email.ToLower().Contains(email.ToLower()));
-            }
-
-            return await query.ToListAsync();
+            return await _customerRepository.GetCustomersAsync(name, address, email);
         }
 
         // --- Egy ügyfél keresése ID alapján (autókkal együtt) ---
         public async Task<Customer?> GetCustomerByIdAsync(int id)
         {
-            return await _context.Customers
-                .Include(c => c.Works)
-                .FirstOrDefaultAsync(c => c.Id == id);
+            return await _customerRepository.GetByIdWithWorksAsync(id);
         }
 
         // --- Új ügyfél létrehozása validációval ---
         public async Task<Customer> CreateCustomerAsync(string name, string address, string email)
         {
             // Duplikáció ellenőrzése
-            bool isDuplicate = await _context.Customers.AnyAsync(c =>
-                c.Name.ToLower() == name.ToLower() &&
-                c.Email.ToLower() == email.ToLower() &&
-                c.Address.ToLower() == address.ToLower());
+            bool isDuplicate = await _customerRepository.EmailExistsAsync(email) && await _customerRepository.AddressExistsAsync(address);
 
             if (isDuplicate)
             {
@@ -82,15 +61,14 @@ namespace Autoszerelo.Services
                 Email = email
             };
 
-            await _context.Customers.AddAsync(customer);
-            await _context.SaveChangesAsync();
+            await _customerRepository.AddAsync(customer);
             return customer;
         }
 
         // --- Ügyfél adatainak frissítése ---
         public async Task<Customer?> UpdateCustomerAsync(int id, string? name, string? address, string? email)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null) return null;
 
             if (!string.IsNullOrWhiteSpace(name) && name != "string")
@@ -110,19 +88,22 @@ namespace Autoszerelo.Services
 
                 customer.Email = email;
             }
+            if (await _customerRepository.EmailExistsForOtherCustomerAsync(id, customer.Email))
+            {
+                throw new InvalidOperationException("Hiba: Ez az email cím már egy másik ügyfélhez van rendelve!");
+            }
 
-            await _context.SaveChangesAsync();
+            await _customerRepository.UpdateAsync(customer);
             return customer;
         }
 
         // --- Ügyfél törlése ---
         public async Task<bool> DeleteCustomerAsync(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null) return false;
 
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync();
+            await _customerRepository.DeleteAsync(customer);
             return true;
         }
     }

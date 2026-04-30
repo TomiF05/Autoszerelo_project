@@ -3,14 +3,24 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Autoszerelo.Data
 {
+
     public class CustomerRepository : ICustomerRepository
 
     {
         private readonly AppDbContext _context;
+
+
+
+
         public CustomerRepository(AppDbContext context)
         {
             _context = context;
         }
+
+
+
+
+
         public async Task AddAsync(Customer customer)
         {
             await _context.Customers.AddAsync(customer);
@@ -55,7 +65,7 @@ namespace Autoszerelo.Data
 
         public async Task UpdateAsync(Customer customer)
         {
-            var existingCustomer = _context.Customers.FirstOrDefault(c => c.Id == customer.Id);
+            var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == customer.Id);
             if (existingCustomer != null)
             { 
                 existingCustomer.Id = customer.Id;

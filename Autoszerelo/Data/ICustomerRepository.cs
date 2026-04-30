@@ -13,5 +13,6 @@ namespace Autoszerelo.Data
         Task AddAsync(Customer customer);
         Task UpdateAsync(Customer customer);
         Task DeleteAsync(Customer customer);
+        Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email);
     }
 }
