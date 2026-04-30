@@ -1,4 +1,5 @@
 ﻿using Autoszerelo.models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Autoszerelo.Data
 {
@@ -12,5 +13,15 @@ namespace Autoszerelo.Data
         Task AddAsync(Works work);
         Task UpdateAsync(Works work);
         Task DeleteAsync(Works work);
+        double CalculateMultiplier(string category, int seriousness, int productionYear);
+        Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(
+       string? licensePlate = null,
+       int? productionYear = null,
+       int? serousness = null,
+       string? faultDescription = null,
+       string? category = null,
+       string? status = null,
+       int? customerId = null
+           );
     }
 }
