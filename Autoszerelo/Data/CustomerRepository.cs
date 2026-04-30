@@ -17,9 +17,9 @@ namespace Autoszerelo.Data
             await _context.SaveChangesAsync();
         }
 
-        public Task<bool> AddressExistsAsync(string address)
+        public async Task<bool> AddressExistsAsync(string address)
         {
-            return _context.Customers.AnyAsync(x => x.Address.Equals(address, StringComparison.OrdinalIgnoreCase));
+            return await _context.Customers.AnyAsync(x => x.Address.Equals(address, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task DeleteAsync(Customer customer)
