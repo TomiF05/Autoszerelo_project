@@ -214,10 +214,5 @@ namespace Autoszerelo.Data
         {
             return CalculateMultiplier(category, seriousness, productionYear);
         }
-
-        public Task DeleteAsync(Task<Works?> task)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
