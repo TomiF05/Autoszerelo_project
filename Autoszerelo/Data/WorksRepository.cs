@@ -1,4 +1,5 @@
 ﻿using Autoszerelo.models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -107,6 +108,28 @@ namespace Autoszerelo.Data
 
             return results;
         }
+
+
+        public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
+        {
+            // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
+            var work = await _context.Works
+               .Include(w => w.Customer)
+               .FirstOrDefaultAsync(w => w.Id == id);
+
+            if (work == null)
+            {
+                throw new ArgumentException("Nincs ilyen munka!");
+            }
+
+            if (work.Customer == null)
+            {
+                throw new ArgumentException("Ehhez a munkához nem tartozik ügyfél!");
+            }
+
+            // Mivel az Include-dal betöltöttük, egyszerűen visszaadjuk a Customer-t
+            return work.Customer;
+        }
         public async Task AddAsync(Works work)
         {
             await _context.AddAsync(work);
@@ -162,6 +185,35 @@ namespace Autoszerelo.Data
             await _context.SaveChangesAsync();
         }
 
+        public async Task<ActionResult<Works>> ChangeStatus(int id)
+        {
+            // 1. Kikérjük az autót
+            var work = await _context.Works
+                .FirstOrDefaultAsync(w => w.Id == id);
+
+            if (work == null) throw new ArgumentException("Nincs ilyen munka!");
+
+            // 2. Logika a léptetéshez
+            // Felvett Munka -> Elvégzés alatt -> Befejezett
+
+            if (work.Status == "Felvett")
+            {
+                work.Status = "Elvégzés alatt";
+            }
+            else if (work.Status == "Elvégzés alatt")
+            {
+                work.Status = "Befejezett";
+            }
+            else if (work.Status == "Befejezett")
+            {
+                throw new ArgumentException("A munka már befejezett állapotban van, nem léptethető tovább!");
+            }
+
+
+            // 3. Mentés és kiadás
+            await _context.SaveChangesAsync();
+            return work;
+        }
         public Task<bool> IdExists(int id)
         {
             return _context.Works.AnyAsync(w => w.Id == id);
@@ -170,6 +222,11 @@ namespace Autoszerelo.Data
         double IWorksRepository.CalculateMultiplier(string category, int seriousness, int productionYear)
         {
             return CalculateMultiplier(category, seriousness, productionYear);
+        }
+
+        public Task DeleteAsync(Task<Works?> task)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace Autoszerelo.Data
         Task<bool> IdExists(int id);
         Task AddAsync(Works work);
         Task UpdateAsync(Works work);
-        Task DeleteAsync(Works work);
+       // Task DeleteAsync(Works work);
         double CalculateMultiplier(string category, int seriousness, int productionYear);
         Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(
        string? licensePlate = null,
@@ -24,5 +24,10 @@ namespace Autoszerelo.Data
        string? status = null,
        int? customerId = null
            );
+
+        Task<ActionResult<Customer>> GetCustomerByWorkId(int id);
+        Task<ActionResult<Works>> ChangeStatus(int id);
+        Task DeleteAsync(Task<Works?> task);
+        
     }
 }
