@@ -6,18 +6,12 @@ namespace Autoszerelo.Data
 {
 
     public class CustomerRepository : ICustomerRepository
-
     {
         private readonly AppDbContext _context;
-
-
-
-
         public CustomerRepository(AppDbContext context)
         {
             _context = context;
         }
-
         public async Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email)
         {
             // 1. Elindítjuk a lekérdezést
@@ -44,9 +38,6 @@ namespace Autoszerelo.Data
             // 5. Eredmény lekérése az adatbázisból
             return await query.ToListAsync();
         }
-
-
-
 
         public async Task AddAsync(Customer customer)
         {

@@ -13,11 +13,6 @@ namespace Autoszerelo.Controllers
     public class WorksController : ControllerBase
     {
         private readonly IWorkService _workService;
-
-        
-
-        
-
         public WorksController(IWorkService workService)
         {
             _workService = workService;

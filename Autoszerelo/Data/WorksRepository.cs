@@ -84,11 +84,7 @@ namespace Autoszerelo.Data
             {
                 query = query.Where(w => w.CustomerId == customerId);
             }
-
-
             // 3. Szűrés hiba leírására (töredék keresés)
-
-
             // 4. Szűrés kategóriára (pontos egyezés vagy töredék)
             if (!string.IsNullOrWhiteSpace(category))
             {
@@ -108,8 +104,6 @@ namespace Autoszerelo.Data
 
             return results;
         }
-
-
         public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
@@ -184,7 +178,6 @@ namespace Autoszerelo.Data
             }
             await _context.SaveChangesAsync();
         }
-
         public async Task<ActionResult<Works>> ChangeStatus(int id)
         {
             // 1. Kikérjük az autót
@@ -208,8 +201,6 @@ namespace Autoszerelo.Data
             {
                 throw new ArgumentException("A munka már befejezett állapotban van, nem léptethető tovább!");
             }
-
-
             // 3. Mentés és kiadás
             await _context.SaveChangesAsync();
             return work;

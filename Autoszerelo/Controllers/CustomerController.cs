@@ -35,7 +35,6 @@ namespace Autoszerelo.Controllers
 
             return Ok(customer);
         }
-
         // --- POST: Új ügyfél ---
         [HttpPost]
         public async Task<ActionResult<Customer>> PostCustomer(string name, string address, string email)
