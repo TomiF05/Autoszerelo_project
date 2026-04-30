@@ -16,42 +16,7 @@ namespace Autoszerelo.Controllers
         private readonly string[] allowedCategories = new[] { "motor", "karosszéria", "futómű", "fékberendezés" };
         private const string pattern = @"^([A-Z]{3}-\d{3}|[A-Z]{2}-[A-Z]{2}-\d{3})$";
 
-        private double CalculateMultiplier(string category, int seriousness, int productionYear)
-        {
-            category = category.ToLower();
-
-            // 1. Alap szorzó kategória alapján
-            double multiplier = category switch
-            {
-                "karosszéria" => 3,
-                "motor" => 8,
-                "futómű" => 6,
-                "fékberendezés" => 4,
-                _ => 1.0 // Biztonsági default, ha ismeretlen kategória jönne
-            };
-
-            // 2. Súlyosság szorzó
-            multiplier *= seriousness switch
-            {
-                10 => 1.0,
-                > 7 => 0.8,
-                > 4 => 0.6,
-                > 2 => 0.4,
-                _ => 0.2
-            };
-
-            // 3. Kor szorzó
-            int age = DateTime.Now.Year - productionYear;
-            multiplier *= age switch
-            {
-                < 5 => 0.5,
-                < 10 => 1.0,
-                < 20 => 1.5,
-                _ => 2.0
-            };
-
-            return multiplier;
-        }
+        
 
         public WorksController(AppDbContext context)
         {

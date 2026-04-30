@@ -6,10 +6,13 @@ namespace Autoszerelo.Data
     public class WorksRepository : IWorksRepository
     {
         private readonly AppDbContext _context;
+
         public WorksRepository(AppDbContext context)
         {
             _context = context;
         }
+
+
         public async Task AddAsync(Works work)
         {
             await _context.AddAsync(work);
