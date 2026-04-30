@@ -7,25 +7,17 @@ using System.Text.RegularExpressions;
 
 namespace Autoszerelo.Services
 {
-    public class WorkService
+    public class WorkService : IWorkService
     {
 
         private readonly IWorksRepository _worksRepository;
         private readonly string[] allowedCategories = new[] { "motor", "karosszéria", "futómű", "fékberendezés" };
         private const string pattern = @"^([A-Z]{3}-\d{3}|[A-Z]{2}-[A-Z]{2}-\d{3})$";
-
-        public async Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(
-        string? licensePlate = null,
-        int? productionYear = null,
-        int? serousness = null,
-        string? faultDescription = null,
-        string? category = null,
-        string? status = null,
-        int? customerId = null
-            )
+        public WorkService(IWorksRepository worksRepository)
         {
-            return await _worksRepository.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
+            _worksRepository = worksRepository;
         }
+        
 
 
 
@@ -102,24 +94,44 @@ namespace Autoszerelo.Services
         
         public async Task<ActionResult<Works>> GetWorkById(int id)
         {
-
-            return await _worksRepository.GetByIdAsync(id);
-            
-
-
-
-            
+            Works? works = await _worksRepository.GetByIdAsync(id);
+            return works;
         }
         //id alpján töröl
-       
-        public async Task<bool> DeleteWork(int id)
+
+        public async Task<IActionResult> DeleteWork(int id)
         {
-            // 1. Megkeressük a munkát
-            await _worksRepository.DeleteAsync(_worksRepository.GetByIdAsync(id));
-            return true;
+            var work = await _worksRepository.GetByIdAsync(id); // 1. Megvárjuk a konkrét objektumot[cite: 5, 10]
+            if (work == null) return new NotFoundResult();
+
+            await _worksRepository.DeleteAsync(work); // 2. A konkrét objektumot töröljük[cite: 9, 10]
+            return new OkResult();
         }
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
+
         
+        //státusz léptető
+
+        public async Task<ActionResult<Works>> ChangeStatus(int id)
+        {
+            // 1. Kikérjük az autót
+            await _worksRepository.ChangeStatus(id);
+            return await _worksRepository.GetByIdAsync(id);
+           
+        }
+
+        public async Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(string? licensePlate = null,
+        int? productionYear = null,
+        int? serousness = null,
+        string? faultDescription = null,
+        string? category = null,
+        string? status = null,
+        int? customerId = null)
+        {
+                return await _worksRepository.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
+            
+        }
+
         public async Task<IActionResult> PutWork(
         int id,
         string? licensePlate = null,
@@ -207,19 +219,9 @@ namespace Autoszerelo.Services
             }
 
             // 3. Mentés
-           _worksRepository.UpdateAsync(work);
+            await _worksRepository.UpdateAsync(work);
             return (IActionResult)work;
         }
-        //státusz léptető
-
-        public async Task<ActionResult<Works>> ChangeStatus(int id)
-        {
-            // 1. Kikérjük az autót
-            _worksRepository.ChangeStatus(id);
-            return await _worksRepository.GetByIdAsync(id);
-        }
-
-
     }
 }
 

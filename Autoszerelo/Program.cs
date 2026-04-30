@@ -6,6 +6,8 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IWorksRepository, WorksRepository>();
+builder.Services.AddScoped<IWorkService, WorkService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddControllers().AddJsonOptions(x =>

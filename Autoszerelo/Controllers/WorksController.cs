@@ -43,7 +43,7 @@ namespace Autoszerelo.Controllers
         public async Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear,string description,string category,int seriousness110,int customerId)
         {
 
-           _workService.PostWork(licenseplate, productionyear, description, category, seriousness110, customerId);
+            await _workService.PostWork(licenseplate, productionyear, description, category, seriousness110, customerId);
             return Ok("Sikeres munka felvétel!");
         }
 

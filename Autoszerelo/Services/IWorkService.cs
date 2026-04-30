@@ -5,15 +5,13 @@ namespace Autoszerelo.Services
 {
     public interface IWorkService
     {
-        Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(
-        string? licensePlate = null,
+        Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(string? licensePlate = null,
         int? productionYear = null,
         int? serousness = null,
         string? faultDescription = null,
         string? category = null,
         string? status = null,
-        int? customerId = null
-            );
+        int? customerId = null);
 
         Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear, string description, string category, int seriousness110, int customerId);
         Task<ActionResult<Customer>> GetCustomerByWorkId(int id);
@@ -27,7 +25,6 @@ namespace Autoszerelo.Services
         int? seriousness = null,
         string? faultDescription = null,
         string? category = null,
-
         int? customerId = null);
         Task<ActionResult<Works>> ChangeStatus(int id);
 
