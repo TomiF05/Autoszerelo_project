@@ -56,7 +56,7 @@ namespace Autoszerelo.Data
 
         public async Task<bool> AddressExistsAsync(string address)
         {
-            return await _context.Customers.AnyAsync(x => x.Address.Equals(address, StringComparison.OrdinalIgnoreCase));
+            return await _context.Customers.AnyAsync(x => x.Address.ToLower() == address.ToLower());
         }
 
         public async Task DeleteAsync(Customer customer)
@@ -67,12 +67,12 @@ namespace Autoszerelo.Data
 
         public async Task<bool> EmailExistsAsync(string email)
         {
-            return await _context.Customers.AnyAsync(x => x.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            return await _context.Customers.AnyAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
         public async Task<bool> EmailExistsForOtherCustomerAsync(int customerId, string email)
         {
-            return await _context.Customers.AnyAsync(x => x.Id != customerId && x.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
+            return await _context.Customers.AnyAsync(x => x.Id != customerId && x.Email.ToLower() == email.ToLower());
         }
 
         public async Task<IEnumerable<Customer>> GetAllAsync()

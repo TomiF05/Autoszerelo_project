@@ -42,12 +42,12 @@ namespace Autoszerelo.Data
 
         public async Task<bool> LicensePlateExistAsync(string licensePlate)
         {
-            return await _context.Works.AnyAsync(x => x.LicensePlate.Equals(licensePlate, StringComparison.OrdinalIgnoreCase));
+            return await _context.Works.AnyAsync(x => x.LicensePlate.ToLower() == licensePlate.ToLower());
         }
 
         public async Task<bool> LicensePlateExistForOtherWorkAsync(int workId, string licensePlate)
         {
-            return await _context.Works.AnyAsync(x => x.Id != workId && x.LicensePlate.Equals(licensePlate, StringComparison.OrdinalIgnoreCase));
+            return await _context.Works.AnyAsync(x => x.Id != workId && x.LicensePlate.ToLower() == licensePlate.ToLower());
         }
 
         public async Task UpdateAsync(Works work)
