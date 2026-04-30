@@ -1,4 +1,5 @@
 ﻿using Autoszerelo.models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace Autoszerelo.Data
@@ -17,6 +18,32 @@ namespace Autoszerelo.Data
             _context = context;
         }
 
+        public async Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email)
+        {
+            // 1. Elindítjuk a lekérdezést
+            var query = _context.Customers.AsQueryable();
+
+            // 2. Szűrés névre (ha megadták)
+            if (!string.IsNullOrEmpty(name))
+            {
+                query = query.Where(c => c.Name.ToLower().Contains(name.ToLower()));
+            }
+
+            // 3. Szűrés városra/címre (ha megadták)
+            if (!string.IsNullOrEmpty(address))
+            {
+                query = query.Where(c => c.Address.ToLower().Contains(address.ToLower()));
+            }
+
+            // 4. Szűrés emailre (ha megadták)
+            if (!string.IsNullOrEmpty(email))
+            {
+                query = query.Where(c => c.Email.ToLower().Contains(email.ToLower()));
+            }
+
+            // 5. Eredmény lekérése az adatbázisból
+            return await query.ToListAsync();
+        }
 
 
 
