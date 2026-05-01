@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="Autoszerelo/Autoszerelo.csproj" />
+  <Project Path="AutoszereloTest/AutoszereloServicesTest.csproj" Id="13c401f9-3b1b-4565-aaeb-eb68c2b8eea5" />
   <Project Path="Frontend/Frontend.csproj" Id="a3bc5bf2-bbc2-4448-ac3f-41b6460ded14" />
   <Project Path="Shared/Shared.csproj" Id="5721b06f-004a-475c-9f07-6e9cc4956a80" />
 </Solution>
