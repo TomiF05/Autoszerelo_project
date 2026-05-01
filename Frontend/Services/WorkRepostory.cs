@@ -12,7 +12,7 @@ namespace Frontend.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<WorkDto>> GetAllWorkAsync()
+        public async Task<List<WorkDto>> GetAllWorksAsync()
         {
             var result = await _httpClient.GetFromJsonAsync<GetAllWorkResponse>("/api/works");
 
@@ -21,7 +21,7 @@ namespace Frontend.Services
 
         public async Task<WorkDto> GetWorkByIdAsync(int id)
         {
-            var result = await _httpClient.GetFromJsonAsync<GetWorkByIdResponse8>($"/api/works/{id}");
+            var result = await _httpClient.GetFromJsonAsync<GetWorkByIdResponse>($"/api/works/{id}");
 
             return result.Work;
         }
