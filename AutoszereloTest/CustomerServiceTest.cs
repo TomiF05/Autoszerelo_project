@@ -2,6 +2,7 @@
 using Autoszerelo.models;
 using Autoszerelo.Services;
 using NSubstitute;
+using Shared;
 using Xunit;
 namespace AutoszereloTest
 {
@@ -14,14 +15,14 @@ namespace AutoszereloTest
             var repository = Substitute.For<ICustomerRepository>();
             var customerService = new CustomerService(repository);
 
-            string keresettName = "Kállai";
+            var filter = new FilterCustomerDto { Name = "Kállai" };
             var fakeList = new List<Customer>
             {
                 new Customer { Id = 1, Name = "Kállai Péter", Address = "Cím 1", Email = "email1@example.com" },
                 new Customer { Id = 2, Name = "Varga Anna", Address = "Cím 2", Email = "email2@example.com" }
             };
-            repository.GetCustomersAsync(keresettName, null, null).Returns(fakeList);
-            var result = await customerService.GetCustomersAsync(keresettName, null, null);
+            repository.GetCustomersAsync(null, filter.Name, null, null).Returns(fakeList);
+            var result = await customerService.GetCustomersAsync(filter);
 
             Assert.NotNull(result);
             var resultList = result.ToList();
@@ -36,14 +37,17 @@ namespace AutoszereloTest
         {
             var repository = Substitute.For<ICustomerRepository>();
             var customerService = new CustomerService(repository);
-            string name = "Kállai Péter";
-            string address = "Cím 1";
-            string email = "email1@example.com";
+            var rosszCustomerDto = new CustomerDto
+            {
+                Name = "Kállai Péter",
+                Address = "Cím 1",
+                Email = "valami@gmail.com"
+            };
 
-            repository.EmailExistsAsync(email).Returns(true);
-            repository.AddressExistsAsync(address).Returns(true);
+            repository.EmailExistsAsync(rosszCustomerDto.Email).Returns(true);
+            repository.AddressExistsAsync(rosszCustomerDto.Address).Returns(true);
 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.CreateCustomerAsync(name, address, email));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
 
 
         }
@@ -52,11 +56,15 @@ namespace AutoszereloTest
         {
             var repository = Substitute.For<ICustomerRepository>();
             var customerService = new CustomerService(repository);
-            string name = "";
-            string address = "Cím 1";
-            string email = "valami@gmail.com";
+            var rosszCustomerDto = new CustomerDto
+            {
+                Name = "",
+                Address = "Cím 1",
+                Email = "valami@gmail.com"
+            };
             
-            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(name, address, email));
+            
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
 
             Assert.Equal("Nem adtál meg nevet!", uzenet.Message);
         }
