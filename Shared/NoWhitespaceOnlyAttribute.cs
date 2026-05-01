@@ -4,19 +4,19 @@ namespace Shared
 {
     public class NoWhitespaceOnlyAttribute : ValidationAttribute
     {
-        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        public override bool IsValid(object? value)
         {
             if (value == null)
             {
-                return new ValidationResult(ErrorMessage ?? "A mező kitöltése kötelező.");
+                return true;
             }
 
-            if (value is string strValue && string.IsNullOrWhiteSpace(strValue))
+            if (value is not string strValue)
             {
-                return new ValidationResult(ErrorMessage ?? "A mező nem állhat csak szóközökből (whitespace).");
+                return false;
             }
 
-            return ValidationResult.Success;
+            return !string.IsNullOrWhiteSpace(strValue);
         }
     }
 }
