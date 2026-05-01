@@ -1,5 +1,6 @@
 ﻿using Autoszerelo.models;
 
+
 namespace Autoszerelo.Data
 {
     public interface ICustomerRepository
@@ -13,6 +14,7 @@ namespace Autoszerelo.Data
         Task AddAsync(Customer customer);
         Task UpdateAsync(Customer customer);
         Task DeleteAsync(Customer customer);
-        Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email);
+        Task<IEnumerable<Customer>> GetCustomersAsync(int? id, string? name, string? address, string? email);
+        Task<bool> CustomerExistsAsync(string address, string email);
     }
 }
