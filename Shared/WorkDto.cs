@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Shared
 {
-    internal class WorkDto
+    public class WorkDto
     {
         public int Id { get; set; }
         public int CustomerId { get; set; }
