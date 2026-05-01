@@ -31,5 +31,22 @@ namespace AutoszereloTest
             Assert.Equal("Kállai Péter", resultList[0].Name);
             Assert.Equal("Varga Anna", resultList[1].Name);
         }
+        [Fact]
+            public async Task CreateCustomerAsync_ThrowsException_WhenDuplicate()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            string name = "Kállai Péter";
+            string address = "Cím 1";
+            string email = "email1@example.com";
+
+            repository.EmailExistsAsync(email).Returns(true);
+            repository.AddressExistsAsync(address).Returns(true);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.CreateCustomerAsync(name, address, email));
+
+
+        }
+
     }
 }
