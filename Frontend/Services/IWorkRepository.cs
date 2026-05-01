@@ -2,7 +2,7 @@
 
 namespace Frontend.Services
 {
-    public interface IWorkRepostory
+    public interface IWorkRepository
     {
         Task<List<WorkDto>> GetAllWorksAsync();
 

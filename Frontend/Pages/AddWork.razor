@@ -1,53 +1,81 @@
-﻿@page "/works"
+﻿@page "/add-work"
 @using Shared
 @using Frontend.Services
-@inject IWorkRepostory WorkRepostory
+@inject IWorkRepository WorkRepository
 @inject NavigationManager NavigationManager
 
-<h3>Munkák listája</h3>
+<h3>Új munka felvétele</h3>
 
-@if (_works is null)
-{
-    <p><em>Betöltés...</em></p>
-}
-else
-{
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Rendszám</th>
-                <th>Kategória</th>
-                <th>Állapot</th>
-                <th>Műveletek</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var work in _works)
-            {
-                <tr>
-                    <td>@work.LicensePlate</td>
-                    <td>@work.Category</td>
-                    <td>@work.Status</td>
-                    <td>
-                        @* A StudentList mintájára a részletek gomb *@
-                        <a class="btn btn-primary" href="works/@work.Id">Details</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    
-    <div class="mt-3">
-        <a class="btn btn-success" href="add-work">Új munka felvétele</a>
+<div class="row">
+    <div class="col-md-6">
+        @* A StudentAPI mintájára EditForm-ot használunk *@
+        <EditForm Model="@_request" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Ügyfél ID:</label>
+                <InputNumber @bind-Value="_request.CustomerId" class="form-control" />
+                <ValidationMessage For="@(() => _request.CustomerId)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Rendszám:</label>
+                <InputText @bind-Value="_request.LicensePlate" class="form-control" placeholder="ABC-123" />
+                <ValidationMessage For="@(() => _request.LicensePlate)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Gyártási év:</label>
+                <InputNumber @bind-Value="_request.ProductionYear" class="form-control" />
+                <ValidationMessage For="@(() => _request.ProductionYear)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Kategória:</label>
+                @* InputSelect-et használunk a fix kategóriákhoz *@
+                <InputSelect @bind-Value="_request.Category" class="form-select">
+                    <option value="">-- Válassz kategóriát --</option>
+                    <option value="Karosszéria">Karosszéria</option>
+                    <option value="Motor">Motor</option>
+                    <option value="Futómű">Futómű</option>
+                    <option value="Fékberendezés">Fékberendezés</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => _request.Category)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Hiba leírása:</label>
+                <InputTextArea @bind-Value="_request.FaultDescription" class="form-control" rows="3" />
+                <ValidationMessage For="@(() => _request.FaultDescription)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Hiba súlyossága (1-10):</label>
+                <InputNumber @bind-Value="_request.Seriousness" class="form-control" />
+                <ValidationMessage For="@(() => _request.Seriousness)" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Mentés</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">Mégsem</button>
+        </EditForm>
     </div>
-}
+</div>
 
 @code {
-    private List<WorkDto>? _works;
+    // A StudentAPI-hoz hasonlóan inicializáljuk a request objektumot
+    private AddWorkRequest _request = new();
 
-    protected override async Task OnInitializedAsync()
+    private async Task HandleValidSubmit()
     {
-        // A StudentRepository.GetAllStudentsAsync() mintájára
-        _works = await WorkRepostory.GetAllWorksAsync();
+        // A StudentRepository.AddStudentAsync(request) mintájára
+        await WorkRepository.AddWorkAsync(_request);
+        
+        // Mentés után visszaugrunk a listához
+        NavigationManager.NavigateTo("/works");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/works");
     }
 }

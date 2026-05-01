@@ -3,20 +3,20 @@ using System.Net.Http.Json;
 
 namespace Frontend.Services
 {
-    public class WorkRepostory : IWorkRepostory
+    public class WorkRepository : IWorkRepository
     {
         private readonly HttpClient _httpClient;
 
-        public WorkRepostory(HttpClient httpClient)
+        public WorkRepository(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
         public async Task<List<WorkDto>> GetAllWorksAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<GetAllWorkResponse>("/api/works");
-
-            return result.Works;
+            // Közvetlenül List<WorkDto>-ként olvassuk be a választ
+            var works = await _httpClient.GetFromJsonAsync<List<WorkDto>>("api/works");
+            return works ?? new List<WorkDto>();
         }
 
         public async Task<WorkDto> GetWorkByIdAsync(int id)

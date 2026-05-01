@@ -1,5 +1,54 @@
-﻿<h3>WorkList</h3>
+﻿@page "/works"
+@using Shared
+@using Frontend.Services
+@inject IWorkRepository WorkRepository
+@inject NavigationManager NavigationManager
+
+<h3>Munkák listája</h3>
+
+@if (_works is null)
+{
+    <p><em>Betöltés...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Rendszám</th>
+                <th>Kategória</th>
+                <th>Állapot</th>
+                <th>Műveletek</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var work in _works)
+            {
+                <tr>
+                    <td>@work.LicensePlate</td>
+                    <td>@work.Category</td>
+                    <td>@work.Status</td>
+                    <td>
+                        @* A StudentList mintájára a részletek gomb *@
+                        <a class="btn btn-primary" href="works/@work.Id">Details</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+    <div class="mt-3">
+        <a class="btn btn-success" href="add-work">Új munka felvétele</a>
+    </div>
+}
 
 @code {
+    private List<WorkDto>? _works;
 
+    protected override async Task OnInitializedAsync()
+    {
+        // A StudentRepository.GetAllStudentsAsync() mintájára
+        _works = await WorkRepository.GetAllWorksAsync();
+    }
 }
+i
