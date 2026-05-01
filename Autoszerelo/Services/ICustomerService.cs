@@ -1,20 +1,23 @@
 ﻿using Autoszerelo.models;
+using Shared;
 
 namespace Autoszerelo.Services
 {
     public interface ICustomerService
     {
         // Összes ügyfél lekérése szűréssel
-        Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email);
+        Task<IEnumerable<CustomerDto>> GetCustomersAsync(FilterCustomerDto? customer);
 
         // Egy ügyfél lekérése ID alapján (autókkal együtt)
-        Task<Customer?> GetCustomerByIdAsync(int id);
+        Task<CustomerDto?> GetCustomerByIdAsync(int id);
 
         // Új ügyfél létrehozása
-        Task<Customer> CreateCustomerAsync(string name, string address, string email);
+        Task<CustomerDto> CreateCustomerAsync(CustomerDto customer);
 
         // Ügyfél adatainak frissítése
-        Task<Customer?> UpdateCustomerAsync(int id, string? name, string? address, string? email);
+        Task<CustomerDto?> UpdateCustomerAsync( UpdateCustomerRequest customer);
+        //Customer MapToEntity(AddCustomerRequest dto);
+        CustomerDto MapToDto(Customer customer);
 
         // Ügyfél törlése
         Task<bool> DeleteCustomerAsync(int id);

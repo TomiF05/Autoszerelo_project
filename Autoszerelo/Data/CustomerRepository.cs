@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Autoszerelo.Data
 {
 
@@ -12,11 +13,14 @@ namespace Autoszerelo.Data
         {
             _context = context;
         }
-        public async Task<IEnumerable<Customer>> GetCustomersAsync(string? name, string? address, string? email)
+        public async Task<IEnumerable<Customer>> GetCustomersAsync(int? id, string? name, string? address, string? email)
         {
             // 1. Elindítjuk a lekérdezést
             var query = _context.Customers.AsQueryable();
-
+            if (id.HasValue)
+            {
+                query = query.Where(c => c.Id == id.Value);
+            }
             // 2. Szűrés névre (ha megadták)
             if (!string.IsNullOrEmpty(name))
             {
@@ -48,6 +52,10 @@ namespace Autoszerelo.Data
         public async Task<bool> AddressExistsAsync(string address)
         {
             return await _context.Customers.AnyAsync(x => x.Address.ToLower() == address.ToLower());
+        }
+        public async Task<bool> CustomerExistsAsync(string address, string email)
+        {
+            return await _context.Customers.AnyAsync(x => x.Address.ToLower() == address.ToLower() && x.Email.ToLower() == email.ToLower());
         }
 
         public async Task DeleteAsync(Customer customer)

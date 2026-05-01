@@ -20,15 +20,15 @@ namespace Autoszerelo.Controllers
 
         // --- GET: Összes ügyfél ---
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers(string? name, string? address, string? email)
+        public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers([FromQuery] FilterCustomerDto? customer)
         {
-            var customers = await _customerService.GetCustomersAsync(name, address, email);
-            return Ok(customers);
+            var customersDto = await _customerService.GetCustomersAsync(customer);
+            return Ok(customersDto);
         }
 
         // --- GET: Egy ügyfél + autók ---
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomerWithCars(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerWithCars(int id)
         {
             var customer = await _customerService.GetCustomerByIdAsync(id);
 
@@ -39,17 +39,22 @@ namespace Autoszerelo.Controllers
         }
         // --- POST: Új ügyfél ---
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer([FromBody] AddCustomerRequest request)
+        public async Task<ActionResult<CustomerDto>> PostCustomer([FromBody] AddCustomerRequest request)
         {
             // 1. Alapszintű validáció (amihez nem kell adatbázis)
             if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("A név kötelező!");
             if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@")) return BadRequest("Hibás email!");
             if (string.IsNullOrWhiteSpace(request.Address)) return BadRequest("A lakcím kötelező!");
-
+                var customer=new CustomerDto
+                {
+                    Name = request.Name,
+                    Email = request.Email,
+                    Address = request.Address
+                };
             try
             {
                 // 2. A munka nehezét a Service végzi
-                var newCustomer = await _customerService.CreateCustomerAsync(request.Name, request.Address, request.Email);
+                var newCustomer = await _customerService.CreateCustomerAsync(customer);
                 return Ok(newCustomer);
             }
             catch (InvalidOperationException ex)
@@ -60,12 +65,12 @@ namespace Autoszerelo.Controllers
         }
 
         // --- PUT: Frissítés ---
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, string? name, string? address, string? email)
+        [HttpPut]
+        public async Task<IActionResult> PutCustomer([FromQuery] UpdateCustomerRequest customer)
         {
             try
             {
-                var updated = await _customerService.UpdateCustomerAsync(id, name, address, email);
+                var updated = await _customerService.UpdateCustomerAsync(customer);
                 if (updated == null) return NotFound("Nincs ilyen ügyfél.");
 
                 return Ok(updated);
