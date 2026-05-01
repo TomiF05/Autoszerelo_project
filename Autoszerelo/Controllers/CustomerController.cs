@@ -1,6 +1,8 @@
 ﻿using Autoszerelo.models;
 using Autoszerelo.Services;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 
 namespace Autoszerelo.Controllers
 {
@@ -37,16 +39,17 @@ namespace Autoszerelo.Controllers
         }
         // --- POST: Új ügyfél ---
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(string name, string address, string email)
+        public async Task<ActionResult<Customer>> PostCustomer([FromBody] AddCustomerRequest request)
         {
             // 1. Alapszintű validáció (amihez nem kell adatbázis)
-            if (string.IsNullOrWhiteSpace(name)) return BadRequest("A név kötelező!");
-            if (string.IsNullOrWhiteSpace(email) || !email.Contains("@")) return BadRequest("Hibás email!");
+            if (string.IsNullOrWhiteSpace(request.Name)) return BadRequest("A név kötelező!");
+            if (string.IsNullOrWhiteSpace(request.Email) || !request.Email.Contains("@")) return BadRequest("Hibás email!");
+            if (string.IsNullOrWhiteSpace(request.Address)) return BadRequest("A lakcím kötelező!");
 
             try
             {
                 // 2. A munka nehezét a Service végzi
-                var newCustomer = await _customerService.CreateCustomerAsync(name, address, email);
+                var newCustomer = await _customerService.CreateCustomerAsync(request.Name, request.Address, request.Email);
                 return Ok(newCustomer);
             }
             catch (InvalidOperationException ex)

@@ -207,7 +207,7 @@ namespace Autoszerelo.Data
         }
         public Task<bool> IdExists(int id)
         {
-            return _context.Works.AnyAsync(w => w.Id == id);
+            return _context.Customers.AnyAsync(w => w.Id == id);
         }
 
         double IWorksRepository.CalculateMultiplier(string category, int seriousness, int productionYear)

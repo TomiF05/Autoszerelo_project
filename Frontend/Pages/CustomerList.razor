@@ -1,0 +1,61 @@
+﻿@page "/customers"
+@using Frontend.Services
+@using Shared
+@inject ICustomerRepository CustomerRepo
+
+<h3 class="mb-4">Ügyfelek listája</h3>
+
+<div class="mb-3">
+    <a href="/add-customer" class="btn btn-success">
+        <i class="bi bi-person-plus"></i> Új ügyfél felvétele
+    </a>
+</div>
+
+@if (customers == null)
+{
+    <div class="d-flex align-items-center">
+        <strong>Betöltés...</strong>
+        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else if (!customers.Any())
+{
+    <div class="alert alert-info">Nincs még rögzített ügyfél az adatbázisban.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 80px">ID</th>
+                        <th>Név</th>
+                        <th>E-mail cím</th>
+                        <th>Telefonszám</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var customer in customers)
+                    {
+                        <tr>
+                            <td><span class="badge bg-secondary">@customer.Id</span></td>
+                            <td class="fw-bold">@customer.Name</td>
+                            <td>@customer.Email</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private IEnumerable<CustomerDto>? customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // A hiba elkerülése végett várunk egy kicsit, amíg az API válaszol
+        customers = await CustomerRepo.GetAllAsync();
+    }
+}

@@ -1,11 +1,12 @@
 ﻿using Autoszerelo.Data;
 using Autoszerelo.models;
+using Autoszerelo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shared;
 using System.ComponentModel;
 using System.Net;
 using System.Text.RegularExpressions;
-using Autoszerelo.Services;
 namespace Autoszerelo.Controllers
 {
     [Route("api/[controller]")] 
@@ -32,13 +33,22 @@ namespace Autoszerelo.Controllers
         {
             return await _workService.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
         }
-        
+
         // --- Új munka felvétele (Validációval) ---
         [HttpPost]
-        public async Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear,string description,string category,int seriousness110,int customerId)
+        // 1. Változtatás: Egyetlen [FromBody] paramétert várunk, magát a DTO-t!
+        public async Task<ActionResult<Works>> PostWork([FromBody] AddWorkRequest request)
         {
+            // 2. Változtatás: A request objektumból szedjük ki az adatokat és adjuk át a Service-nek
+            await _workService.PostWork(
+                request.LicensePlate,
+                request.ProductionYear,
+                request.FaultDescription, 
+                request.Category,
+                request.Seriousness,
+                request.CustomerId
+            );
 
-            await _workService.PostWork(licenseplate, productionyear, description, category, seriousness110, customerId);
             return Ok("Sikeres munka felvétel!");
         }
 

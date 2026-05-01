@@ -1,0 +1,48 @@
+﻿@page "/add-customer"
+@using Frontend.Services
+@using Shared
+@inject ICustomerRepository CustomerRepo
+@inject NavigationManager NavManager
+
+<h3 class="mb-4">Új ügyfél hozzáadása</h3>
+
+<div class="card p-4 shadow-sm" style="max-width: 600px;">
+    <div class="card-body">
+        <EditForm Model="_request" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Ügyfél neve:</label>
+                <InputText @bind-Value="_request.Name" class="form-control" placeholder="Pl.: Kovács János" />
+                <ValidationMessage For="@(() => _request.Name)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">E-mail cím:</label>
+                <InputText @bind-Value="_request.Email" class="form-control" placeholder="pelda@email.com" />
+                <ValidationMessage For="@(() => _request.Email)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Lakcím:</label>
+                <InputText @bind-Value="_request.Address" class="form-control" placeholder="1234 Budapest, Példa u. 1." />
+                <ValidationMessage For="@(() => _request.Address)" class="text-danger" />
+            </div>
+
+            <div class="d-flex gap-2 pt-2">
+                <button type="submit" class="btn btn-primary px-4">Mentés</button>
+                <a href="/customers" class="btn btn-outline-secondary px-4">Mégsem</a>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private AddCustomerRequest _request = new();
+
+    private async Task HandleSubmit()
+    {
+        await CustomerRepo.AddAsync(_request);
+        NavManager.NavigateTo("/customers");
+    }
+}

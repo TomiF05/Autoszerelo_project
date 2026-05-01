@@ -32,6 +32,7 @@ namespace Autoszerelo.Services
 
             // Alakítsuk nagybetűssé, mielőtt ellenőrizzük (így a kisbetűs beírás is jó lesz)
             licenseplate = licenseplate.ToUpper();
+            string normalizedCategory = category.ToLower();
 
             if (!Regex.IsMatch(licenseplate, pattern))
             {
@@ -59,7 +60,7 @@ namespace Autoszerelo.Services
             }
 
 
-            if (!allowedCategories.Contains(category))
+            if (!allowedCategories.Contains(normalizedCategory))
             {
                 throw new ArgumentException("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.");
             }

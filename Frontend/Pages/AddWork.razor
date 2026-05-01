@@ -67,6 +67,7 @@
 
     private async Task HandleValidSubmit()
     {
+        _request.Status = "Felvett";
         // A StudentRepository.AddStudentAsync(request) mintájára
         await WorkRepository.AddWorkAsync(_request);
         
