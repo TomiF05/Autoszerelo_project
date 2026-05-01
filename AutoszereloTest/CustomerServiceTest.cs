@@ -7,7 +7,7 @@ namespace AutoszereloTest
 {
     public class CustomerServiceTest
     {
-        
+
         [Fact]
         public async Task GetCustomersAsync_ReturnsDataFromRepository()
         {
@@ -32,7 +32,7 @@ namespace AutoszereloTest
             Assert.Equal("Varga Anna", resultList[1].Name);
         }
         [Fact]
-            public async Task CreateCustomerAsync_ThrowsException_WhenDuplicate()
+        public async Task CreateCustomerAsync_ThrowsException_WhenDuplicate()
         {
             var repository = Substitute.For<ICustomerRepository>();
             var customerService = new CustomerService(repository);
@@ -47,6 +47,18 @@ namespace AutoszereloTest
 
 
         }
+        [Fact]
+        public async Task CreateCustomerAsync_ThrowsException_WhenNameIsEmpty()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            string name = "";
+            string address = "Cím 1";
+            string email = "valami@gmail.com";
+            
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(name, address, email));
 
+            Assert.Equal("Nem adtál meg nevet!", uzenet.Message);
+        }
     }
 }
