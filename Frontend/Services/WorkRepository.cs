@@ -42,5 +42,10 @@ namespace Frontend.Services
         {
             await _httpClient.DeleteAsync($"/api/works/{id}");
         }
+        public async Task ChangeStatusAsync(int id)
+        {
+            // A null azt jelenti, hogy nem küldünk extra JSON dobozt, csak magát az URL-t hívjuk meg
+            await _httpClient.PutAsync($"/api/works/change-status/{id}", null);
+        }
     }
 }

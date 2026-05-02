@@ -13,5 +13,7 @@ namespace Frontend.Services
         Task UpdateWorkAsync(int id, UpdateWorkRequest request);
 
         Task DeleteWorkAsync(int id);
+
+        Task ChangeStatusAsync(int id);
     }
 }

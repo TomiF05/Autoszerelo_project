@@ -19,5 +19,12 @@ namespace Shared
         [EmailAddress]
         [NoWhitespaceOnly]
         public string Email { get; set; }
+
+        [Required]
+        [MinLength(6)]
+        public string Password { get; set; } = string.Empty;
+
+        // A Role maradhat így, az alapértelmezett "User" tökéletes!
+        public string Role { get; set; } = "User";
     }
 }
