@@ -92,6 +92,10 @@ namespace Autoszerelo.Services
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
             var result = await _worksRepository.GetCustomerByWorkId(id);
             var customer = result.Value;
+            if (customer == null)
+            { 
+                throw new ArgumentException("Hiba: Ilyen ID-jű ügyfél nem létezik! Előbb hozd létre az ügyfelet a Customer oldalon.");
+            }
             return new CustomerDto
             {
                 Id = customer.Id,
