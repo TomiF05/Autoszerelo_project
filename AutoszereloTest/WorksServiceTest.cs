@@ -100,5 +100,33 @@ namespace AutoszereloServicesTest
             Assert.Equal(customer, eredmeny.Value);
         }
 
+        [Fact]
+        public async Task GetWorkById_ReturnsWork_WhenWorkExists()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var work = new Works
+            {
+                Id = 1,
+                LicensePlate = "ABC-123",
+                ProductionYear = 2010,
+                FaultDescription = "Nem indul",
+                Category = "motor",
+                seriousness = 2,
+                CustomerId = 1
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var eredmeny = await workService.GetWorkById(1);
+            Assert.Equal(work, eredmeny.Value);
+        }
+
+        [Fact]
+        public async Task GetWorkById_ThrowsException_WhenWorkDoesNotExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var eredmeny = await Assert.ThrowsAsync<ArgumentException>(() => workService.GetWorkById(999));
+            Assert.Equal("Hiba: Ilyen ID-jű munka nem létezik!", eredmeny.Message);
+        }
     }
 }

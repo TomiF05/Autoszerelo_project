@@ -97,6 +97,10 @@ namespace Autoszerelo.Services
         public async Task<ActionResult<Works>> GetWorkById(int id)
         {
             Works? works = await _worksRepository.GetByIdAsync(id);
+            if( works == null)
+            {
+                throw new ArgumentException("Hiba: Ilyen ID-jű munka nem létezik!");
+            }
             return works;
         }
         //id alpján töröl
