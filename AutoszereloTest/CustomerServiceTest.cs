@@ -4,7 +4,7 @@ using Autoszerelo.Services;
 using NSubstitute;
 using Shared;
 using Xunit;
-namespace AutoszereloTest
+namespace AutoszereloServicesTest
 {
     public class CustomerServiceTest
     {
