@@ -68,8 +68,8 @@ namespace AutoszereloTest
 
             Assert.Equal("Nem adtál meg nevet!", uzenet.Message);
         }
-    
-    [Fact]
+
+        [Fact]
         public async Task UpdateCustomer_ThrowsException_WhenCustomerNotFound()
         {
             var repository = Substitute.For<ICustomerRepository>();
@@ -82,7 +82,32 @@ namespace AutoszereloTest
                 Email = "KallaiPeter1@gmail.com"
             };
             await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.UpdateCustomerAsync(rosszCutomerDto));
-        
+
+        }
+        [Fact]
+        public async Task UpdateCustomer_ThrowsException_WhenEmailExists()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCutomerDto = new UpdateCustomerRequest
+            {
+                Id = 1,
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com" 
+            };
+            var letezoCustomer = new Customer
+            {
+                Id = 1,
+                Name = "Kállai Péter"
+            };
+
+            repository.GetByIdAsync(rosszCutomerDto.Id).Returns(letezoCustomer);
+
+            repository.EmailExistsForOtherCustomerAsync(rosszCutomerDto.Id,rosszCutomerDto.Email).Returns(true);
+            var uzenet = await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.UpdateCustomerAsync(rosszCutomerDto));
+
+            Assert.Equal("Hiba: Ez az email cím már egy másik ügyfélhez van rendelve!", uzenet.Message); 
         }
     }
 }
