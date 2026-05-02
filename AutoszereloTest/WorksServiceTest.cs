@@ -1,10 +1,87 @@
 ﻿using System;
 using System.Collections.Generic;
+using Shared;
+using Autoszerelo.Services;
 using System.Text;
+using Xunit;
+using NSubstitute;
+using Autoszerelo.Data;
 
 namespace AutoszereloServicesTest
 {
-    internal class WorksServiceTest
+    public class WorksServiceTest
     {
+        [Fact]
+        public async Task PostWork_ThrowsException_WhenLicensePlateIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PostWork("HIBÁSRENDSZÁM", 2010, "Nem indul", "motor", 2, 1));
+
+            Assert.Equal("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PostWork_ThrowsException_WhenDateIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PostWork("ABC-123", 1800, "Nem indul", "motor", 2, 1));
+
+            Assert.Equal("Érvénytelen gyártási év!", uzenet.Message);
+        }
+
+        [Fact]
+
+        public async Task PostWork_ThrowsException_WhenSeriousnessIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PostWork("ABC-123", 2010, "Nem indul", "motor", 100, 1));
+
+            Assert.Equal("Érvénytelen súlyosság!(ez egy 1 ls 10 közötti egész szám)", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PostWork_ThrowsException_WhenCategoryIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.IdExists(1).Returns(true);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PostWork("ABC-123", 2010, "Nem indul", "Hiba", 2, 1));
+            Assert.Equal("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.", uzenet.Message);
+        }
+        [Fact]
+        public async Task PostWork_ThrowsException_WhenCustomerIdDoesNotExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.IdExists(999).Returns(false);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PostWork("ABC-123", 2010, "Nem indul", "motor", 2, 999));
+            Assert.Equal("Hiba: Ilyen ID-jű ügyfél nem létezik! Előbb hozd létre az ügyfelet a Customer oldalon.", uzenet.Message);
+        }
+        [Fact]
+        public async Task PostWork_ReturnsWork_WhenAllParameterMatches()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.IdExists(1).Returns(true);
+            var eredmeny = await workService.PostWork("abc-123", 2010, "Nem indul", "motor", 2, 1);
+            Assert.NotNull(eredmeny);
+            var work = eredmeny.Value;
+            Assert.NotNull(work);
+            Assert.Equal("ABC-123", work.LicensePlate);
+            Assert.Equal(2010, work.ProductionYear);
+            Assert.Equal("Nem indul", work.FaultDescription);
+            Assert.Equal("motor", work.Category);
+            Assert.Equal(2, work.seriousness);
+            Assert.Equal(1, work.CustomerId);
+        }
+
+        
+
     }
 }
