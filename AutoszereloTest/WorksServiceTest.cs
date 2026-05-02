@@ -97,7 +97,12 @@ namespace AutoszereloServicesTest
             };
             repository.GetCustomerByWorkId(1).Returns(customer);
             var eredmeny = await workService.GetCustomerByWorkId(1);
-            Assert.Equal(customer, eredmeny.Value);
+            var kibontott = eredmeny.Value;
+            Assert.NotNull(kibontott);
+            Assert.Equal(customer.Id, kibontott.Id);
+            Assert.Equal(customer.Name, kibontott.Name);
+            Assert.Equal(customer.Email, kibontott.Email);
+            Assert.NotNull(kibontott.Works);
         }
 
         [Fact]
@@ -117,7 +122,15 @@ namespace AutoszereloServicesTest
             };
             repository.GetByIdAsync(1).Returns(work);
             var eredmeny = await workService.GetWorkById(1);
-            Assert.Equal(work, eredmeny.Value);
+            var kibontott = eredmeny.Value;
+            Assert.NotNull(kibontott);
+            Assert.Equal(work.Id, kibontott.Id);
+            Assert.Equal(work.LicensePlate, kibontott.LicensePlate);
+            Assert.Equal(work.ProductionYear, kibontott.ProductionYear);
+            Assert.Equal(work.FaultDescription, kibontott.FaultDescription);
+            Assert.Equal(work.Category, kibontott.Category);
+            Assert.Equal(work.seriousness, kibontott.Seriousness);
+            Assert.Equal(work.CustomerId, kibontott.CustomerId);
         }
 
         [Fact]
