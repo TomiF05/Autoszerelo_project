@@ -1,0 +1,93 @@
+﻿@page "/works/{Id:int}"
+@using Shared
+@using Frontend.Services
+@inject IWorkRepository WorkRepository
+@inject NavigationManager NavManager
+
+<h3 class="mb-4">Munkalap részletei</h3>
+
+@if (_work == null)
+{
+    <div class="d-flex align-items-center">
+        <strong>Adatok betöltése...</strong>
+        <div class="spinner-border text-primary ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else
+{
+    <div class="card shadow border-primary mb-4" style="max-width: 800px;">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+            <h4 class="mb-0">
+                <i class="bi bi-car-front-fill me-2"></i> @_work.LicensePlate
+            </h4>
+            <span class="badge bg-light text-dark fs-6">@(_work.Status ?? "Felvett")</span>
+        </div>
+        
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <h5 class="text-primary border-bottom pb-2">Jármű adatai</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item bg-transparent px-0">
+                            <strong>Kategória:</strong> <span class="text-capitalize">@_work.Category</span>
+                        </li>
+                        <li class="list-group-item bg-transparent px-0">
+                            <strong>Gyártási év:</strong> @_work.ProductionYear
+                        </li>
+                        <li class="list-group-item bg-transparent px-0">
+                            <strong>Ügyfél ID:</strong> #@_work.CustomerId
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <h5 class="text-primary border-bottom pb-2">Munka adatai</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item bg-transparent px-0">
+                            <strong>Becsült munkaidő:</strong> <span class="fw-bold">@_work.EstimatedHours.ToString("0.#")</span> óra
+                        </li>
+                        <li class="list-group-item bg-transparent px-0">
+                            <strong>Hiba súlyossága:</strong> @_work.Seriousness / 10
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <h5 class="text-primary border-bottom pb-2">Hiba leírása</h5>
+                <div class="bg-light p-3 rounded border border-light shadow-sm">
+                    @if (string.IsNullOrWhiteSpace(_work.FaultDescription))
+                    {
+                        <em class="text-muted">Nincs megadva részletes leírás.</em>
+                    }
+                    else
+                    {
+                        @_work.FaultDescription
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-footer bg-white d-flex gap-2 py-3">
+            <a href="/works" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Vissza a listához
+            </a>
+            <a href="/edit-work/@_work.Id" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Szerkesztés
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private WorkDto? _work;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Lekérjük a munkát az ID alapján a backendből
+        _work = await WorkRepository.GetWorkByIdAsync(Id);
+    }
+}
