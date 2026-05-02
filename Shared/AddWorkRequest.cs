@@ -31,6 +31,6 @@ namespace Shared
         [Range(1,10)]
         public int Seriousness { get; set; }
 
-        public string Status { get; set; } = "Felvett Munka";
+        //public string Status { get; set; } = "Felvett Munka";
     }
 }
