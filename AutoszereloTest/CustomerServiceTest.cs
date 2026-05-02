@@ -109,7 +109,7 @@ namespace AutoszereloTest
 
             Assert.Equal("Hiba: Ez az email cím már egy másik ügyfélhez van rendelve!", uzenet.Message);
         }
-    
+
 
         [Fact]
         public async Task DeleteCustomerAsync_ThrowsException_WhenCustomerNotFound()
@@ -136,7 +136,30 @@ namespace AutoszereloTest
             var result = await customerService.GetCustomerByIdAsync(rosszCustomerId);
             Assert.Null(result);
         }
-    
-    } 
+        [Fact]
+        public async Task GetCustomerByIdAsync_ReturnsData()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var letezoWorks = new List<Works>
+            {
+                new Works { Id = 1, Category = "Motor", CustomerId = 1 },
+                new Works { Id = 2, Category = "Futómű", CustomerId = 1 }
+            };
+            var letezoCustomer = new Customer
+            {
+                Id = 1,
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaPeter1@gmail.com",
+                Works = letezoWorks
+            };
+            repository.GetByIdWithWorksAsync(1).Returns(letezoCustomer);
 
+            var result = await customerService.GetCustomerByIdAsync(1);
+            Assert.NotNull(result);
+            Assert.Equal("Kállai Péter", result.Name);
+
+        }
+    }
 }
