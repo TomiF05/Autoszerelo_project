@@ -184,7 +184,7 @@ namespace Autoszerelo.Services
         public async Task<bool> DeleteCustomerAsync(int id)
         {
             var customer = await _customerRepository.GetByIdAsync(id);
-            if (customer == null) return false;
+            if (customer == null) throw new InvalidOperationException("Nem található a törölni kívánt ügyfél");
 
             await _customerRepository.DeleteAsync(customer);
             return true;
