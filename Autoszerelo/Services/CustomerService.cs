@@ -139,7 +139,7 @@ namespace Autoszerelo.Services
         public async Task<CustomerDto?> UpdateCustomerAsync(UpdateCustomerRequest customerDto)
         {
             var customer = await _customerRepository.GetByIdAsync(customerDto.Id);
-            if (customer == null) return null;
+            if (customer == null) throw new InvalidOperationException("Nem található a frissíteni kívánt ügyfél!");
 
             if (!string.IsNullOrWhiteSpace(customerDto.Name) && customerDto.Name != "string")
             {

@@ -62,11 +62,27 @@ namespace AutoszereloTest
                 Address = "Cím 1",
                 Email = "valami@gmail.com"
             };
-            
-            
+
+
             var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
 
             Assert.Equal("Nem adtál meg nevet!", uzenet.Message);
+        }
+    
+    [Fact]
+        public async Task UpdateCustomer_ThrowsException_WhenCustomerNotFound()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCutomerDto = new UpdateCustomerRequest
+            {
+                Id = 100,
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
+            };
+            await Assert.ThrowsAsync<InvalidOperationException>(() => customerService.UpdateCustomerAsync(rosszCutomerDto));
+        
         }
     }
 }
