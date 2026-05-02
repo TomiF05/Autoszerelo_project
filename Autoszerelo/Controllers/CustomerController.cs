@@ -28,12 +28,12 @@ namespace Autoszerelo.Controllers
 
         // --- GET: Egy ügyfél + autók ---
         [HttpGet("{id}")]
-        public async Task<ActionResult<CustomerDto>> GetCustomerWithCars(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerWithCars([FromQuery]IdDto id)
         {
-            var customer = await _customerService.GetCustomerByIdAsync(id);
+            var customer = await _customerService.GetCustomerByIdAsync(id.Id);
 
             if (customer == null)
-                return NotFound($"Nincs ügyfél ezzel az ID-val: {id}");
+                return NotFound($"Nincs ügyfél ezzel az ID-val: {id.Id}");
 
             return Ok(customer);
         }
@@ -83,9 +83,9 @@ namespace Autoszerelo.Controllers
 
         // --- DELETE: Törlés ---
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomer(IdDto id)
         {
-            var success = await _customerService.DeleteCustomerAsync(id);
+            var success = await _customerService.DeleteCustomerAsync(id.Id);
 
             if (!success) return NotFound();
 

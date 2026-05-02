@@ -21,17 +21,9 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Works>>> GetWorks(
-        string? licensePlate = null,
-        int? productionYear=null,
-        int? serousness=null,
-        string? faultDescription = null,
-        string? category = null,
-        string? status = null,
-        int? customerId=null
-            )
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery]GetWorkDto work)
         {
-            return await _workService.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
+            return await _workService.GetWorksAsync(work);
         }
 
         // --- Új munka felvétele (Validációval) ---
@@ -53,39 +45,39 @@ namespace Autoszerelo.Controllers
         }
 
         // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
-        [HttpGet("customer/{id}")]
-        public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
+        [HttpGet("customer")]
+        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId([FromQuery]IdDto id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
 
-            return await _workService.GetCustomerByWorkId(id);
+            return await _workService.GetCustomerByWorkId(id.Id);
         }
         //megadja id alapján a munkát
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Works>> GetWorkById(int id)
+        [HttpGet("GetWorkById")]
+        public async Task<ActionResult<WorkDto>> GetWorkById(IdDto id)
         {
-            return await _workService.GetWorkById(id);
+            return await _workService.GetWorkById(id.Id);
             
         }
         //id alpján töröl
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteWork(int id)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteWork(IdDto id)
         {
             // 1. Megkeressük a munkát
-            return await _workService.DeleteWork(id);
+            return await _workService.DeleteWork(id.Id);
         }
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutWork(int id, [FromBody] UpdateWorkRequest request)
+        [HttpPut]
+        public async Task<IActionResult> PutWork([FromQuery] UpdateWorkRequest? request)
         {
             // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
-            return await _workService.PutWork(id, request);
+            return await _workService.PutWork(request);
         }
         //státusz léptető
-        [HttpPut("change-status/{id}")]
-        public async Task<ActionResult<Works>> ChangeStatus(int id)
+        [HttpPut("change-status")]
+        public async Task<ActionResult<WorkDto>> ChangeStatus(IdDto id)
         {
-            return await _workService.ChangeStatus(id);
+            return await _workService.ChangeStatus(id.Id);
         }
 
 

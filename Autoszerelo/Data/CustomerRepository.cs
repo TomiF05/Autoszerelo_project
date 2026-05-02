@@ -16,7 +16,7 @@ namespace Autoszerelo.Data
         public async Task<IEnumerable<Customer>> GetCustomersAsync(int? id, string? name, string? address, string? email)
         {
             // 1. Elindítjuk a lekérdezést, BELEÉRTVE a munkákat is!
-            var query = _context.Customers.Include(c => c.Works).AsQueryable();
+            var query = _context.Customers.AsQueryable();
 
             if (id.HasValue)
             {

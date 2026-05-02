@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared;
 using System.Text.RegularExpressions;
-
+using System.Xml.Linq;
 namespace Autoszerelo.Services
 {
     public class WorkService : IWorkService
@@ -87,17 +87,50 @@ namespace Autoszerelo.Services
 
         // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
 
-        public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId(int id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
-            return await _worksRepository.GetCustomerByWorkId(id);
+            var result = await _worksRepository.GetCustomerByWorkId(id);
+            var customer = result.Value;
+            return new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Email = customer.Email,
+                Address = customer.Address,
+                // EZT A RÉSZT ADTUK HOZZÁ:
+                Works = customer.Works?.Select(w => new WorkDto
+                {
+                    Id = w.Id,
+                    CustomerId = w.CustomerId,
+                    LicensePlate = w.LicensePlate,
+                    ProductionYear = w.ProductionYear,
+                    Category = w.Category,
+                    FaultDescription = w.FaultDescription,
+                    Seriousness = w.seriousness,
+                    Status = w.Status,
+                    EstimatedHours = w.EstimatedHours
+                }).ToList() ?? new List<WorkDto>()
+            };
         }
         //megadja id alapján a munkát
 
-        public async Task<ActionResult<Works>> GetWorkById(int id)
+        public async Task<ActionResult<WorkDto>> GetWorkById(int id)
         {
             Works? works = await _worksRepository.GetByIdAsync(id);
-            return works;
+            var result = new WorkDto
+            {
+                Category = works.Category,
+                CustomerId = works.CustomerId,
+                Seriousness = works.seriousness,
+                EstimatedHours = works.EstimatedHours,
+                Id = works.Id,
+                LicensePlate =  works.LicensePlate,
+                FaultDescription = works.FaultDescription,
+                Status = works.Status,
+                ProductionYear = works.ProductionYear
+            };
+            return result;
         }
         //id alpján töröl
 
@@ -114,30 +147,56 @@ namespace Autoszerelo.Services
 
         //státusz léptető
 
-        public async Task<ActionResult<Works>> ChangeStatus(int id)
+        public async Task<ActionResult<WorkDto>> ChangeStatus(int id)
         {
             // 1. Kikérjük az autót
             await _worksRepository.ChangeStatus(id);
-            return await _worksRepository.GetByIdAsync(id);
-
+            var result=await _worksRepository.GetByIdAsync(id);
+            var work = new WorkDto
+            {
+                Category=result.Category,
+                CustomerId=result.CustomerId,
+                Seriousness=result.seriousness,
+                EstimatedHours=result.EstimatedHours,
+                Id=result.Id,
+                LicensePlate=result.LicensePlate,
+                FaultDescription=result.FaultDescription,
+                Status=result.Status,
+                ProductionYear=result.ProductionYear
+            };
+            return work;
+            
         }
 
-        public async Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(string? licensePlate = null,
-        int? productionYear = null,
-        int? serousness = null,
-        string? faultDescription = null,
-        string? category = null,
-        string? status = null,
-        int? customerId = null)
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorksAsync(GetWorkDto work)
         {
-            return await _worksRepository.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
+            var actionresult = await _worksRepository.GetWorksAsync(work.LicensePlate, work.ProductionYear, work.Seriousness, work.FaultDescription, work.Category, work.Status, work.CustomerId);
+            
+            var works = actionresult.Value;
 
+            if(works == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return works.Select(static w => new WorkDto
+            {
+                Id = w.Id,
+                CustomerId = w.CustomerId,
+                LicensePlate = w.LicensePlate,
+                ProductionYear = w.ProductionYear,
+                Category = w.Category,
+                FaultDescription = w.FaultDescription,
+                Seriousness = w.seriousness,
+                Status = w.Status,
+                EstimatedHours = w.EstimatedHours
+            }).ToList();
         }
 
-        public async Task<IActionResult> PutWork(int id, UpdateWorkRequest request)
+        public async Task<IActionResult> PutWork(UpdateWorkRequest request)
         {
             // 1. Megkeressük az eredeti munkát az adatbázisban
-            var work = await _worksRepository.GetByIdAsync(id);
+            var work = await _worksRepository.GetByIdAsync(request.Id);
 
             if (work == null)
             {
@@ -149,7 +208,7 @@ namespace Autoszerelo.Services
             if (!string.IsNullOrEmpty(request.LicensePlate))
             {
                 string licensePlate = request.LicensePlate.ToUpper();
-                if (!Regex.IsMatch(licensePlate, pattern)) // Gondolom a pattern fentebb definiálva van
+                if (!Regex.IsMatch(licensePlate, pattern)) // Gondolom a pattern fentebb definiálva van // igen
                 {
                     throw new ArgumentException("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.");
                 }
@@ -164,7 +223,7 @@ namespace Autoszerelo.Services
             if (!string.IsNullOrEmpty(request.Category))
             {
                 string category = request.Category.ToLower();
-                if (!allowedCategories.Contains(category)) // Gondolom ez is definiálva van fent
+                if (!allowedCategories.Contains(category)) // Gondolom ez is definiálva van fent // igen
                 {
                     throw new ArgumentException("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.");
                 }
@@ -172,10 +231,10 @@ namespace Autoszerelo.Services
             }
 
             // --- EZ A RÉSZ HIÁNYZOTT EDDIG: A STÁTUSZ FRISSÍTÉSE ---
-            if (!string.IsNullOrEmpty(request.Status))
-            {
-                work.Status = request.Status;
-            }
+            //if (!string.IsNullOrEmpty(request.Status))
+            //{
+            //    work.Status = request.Status;
+            //}
 
 
             // Mivel változhatott a kategória, újraszámoljuk az időt az EREDETI (adatbázisos) évjárat és súlyosság alapján
