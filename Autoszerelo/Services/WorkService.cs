@@ -3,6 +3,7 @@ using Autoszerelo.models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Shared;
 using System.Text.RegularExpressions;
 
 namespace Autoszerelo.Services
@@ -17,11 +18,11 @@ namespace Autoszerelo.Services
         {
             _worksRepository = worksRepository;
         }
-        
 
 
 
-        
+
+
         public async Task<ActionResult<Works>> PostWork(string licenseplate, int productionyear, string description, string category, int seriousness110, int customerId)
         {
 
@@ -79,20 +80,20 @@ namespace Autoszerelo.Services
 
             // 3. Mentés
             await _worksRepository.AddAsync(work);
-            
+
 
             return work;
         }
 
         // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
-        
+
         public async Task<ActionResult<Customer>> GetCustomerByWorkId(int id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
             return await _worksRepository.GetCustomerByWorkId(id);
         }
         //megadja id alapján a munkát
-        
+
         public async Task<ActionResult<Works>> GetWorkById(int id)
         {
             Works? works = await _worksRepository.GetByIdAsync(id);
@@ -110,7 +111,7 @@ namespace Autoszerelo.Services
         }
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
 
-        
+
         //státusz léptető
 
         public async Task<ActionResult<Works>> ChangeStatus(int id)
@@ -118,7 +119,7 @@ namespace Autoszerelo.Services
             // 1. Kikérjük az autót
             await _worksRepository.ChangeStatus(id);
             return await _worksRepository.GetByIdAsync(id);
-           
+
         }
 
         public async Task<ActionResult<IEnumerable<Works>>> GetWorksAsync(string? licensePlate = null,
@@ -129,100 +130,62 @@ namespace Autoszerelo.Services
         string? status = null,
         int? customerId = null)
         {
-                return await _worksRepository.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
-            
+            return await _worksRepository.GetWorksAsync(licensePlate, productionYear, serousness, faultDescription, category, status, customerId);
+
         }
 
-        public async Task<IActionResult> PutWork(
-        int id,
-        string? licensePlate = null,
-        int? productionYear = null,
-        int? seriousness = null,
-        string? faultDescription = null,
-        string? category = null,
-
-        int? customerId = null)
+        public async Task<IActionResult> PutWork(int id, UpdateWorkRequest request)
         {
             // 1. Megkeressük az eredeti munkát az adatbázisban
             var work = await _worksRepository.GetByIdAsync(id);
 
             if (work == null)
             {
-                throw new ArgumentException($"Nincs munka ezzel az ID-val: {id}");
+                return new NotFoundResult(); // Helyes HTTP válasz, ha nem találja
             }
 
-            // 2. Csak azt írjuk át, amit ténylegesen megadtak (nem null)
-            if (!string.IsNullOrEmpty(licensePlate))
+            // 2. Csak azt írjuk át, amit ténylegesen megadtak a Frontendről (request)
+
+            if (!string.IsNullOrEmpty(request.LicensePlate))
             {
-                // Regex magyarázat:
-                // ^[A-Z]{3}-\d{3}$          -> Régi formátum (pl. ABC-123)
-                // ^[A-Z]{2}-[A-Z]{2}-\d{3}$ -> Új formátum (pl. AA-BB-123)
-
-
-                // Alakítsuk nagybetűssé, mielőtt ellenőrizzük (így a kisbetűs beírás is jó lesz)
-                licensePlate = licensePlate.ToUpper();
-
-                if (!Regex.IsMatch(licensePlate, pattern))
+                string licensePlate = request.LicensePlate.ToUpper();
+                if (!Regex.IsMatch(licensePlate, pattern)) // Gondolom a pattern fentebb definiálva van
                 {
                     throw new ArgumentException("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.");
                 }
-
                 work.LicensePlate = licensePlate;
             }
 
-            if (productionYear.HasValue)
+            if (!string.IsNullOrEmpty(request.FaultDescription))
             {
-                int currentYear = DateTime.Now.Year;
-                if (productionYear < 1900 || productionYear > currentYear)
-                {
-                    throw new ArgumentException($"A gyártási évnek 1900 és {currentYear + 1} között kell lennie!");
-                }
-                work.ProductionYear = productionYear.Value;
+                work.FaultDescription = request.FaultDescription;
             }
 
-            if (seriousness.HasValue)
+            if (!string.IsNullOrEmpty(request.Category))
             {
-                if (seriousness < 1 || seriousness > 100)
-                {
-                    throw new ArgumentException("A súlyosság mérőszáma em megfelelő! Ez legye egy 1 és 10 közötti egyész szám");
-                }
-                work.seriousness = seriousness.Value;
-            }
-
-            if (!string.IsNullOrEmpty(faultDescription))
-            {
-                work.FaultDescription = faultDescription;
-            }
-
-            if (!string.IsNullOrEmpty(category))
-            {
-                category = category.ToLower();
-
-                if (!allowedCategories.Contains(category))
+                string category = request.Category.ToLower();
+                if (!allowedCategories.Contains(category)) // Gondolom ez is definiálva van fent
                 {
                     throw new ArgumentException("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.");
                 }
                 work.Category = category;
             }
 
-
-            work.EstimatedHours = _worksRepository.CalculateMultiplier(work.Category, work.seriousness, work.ProductionYear);
-
-
-            if (customerId.HasValue)
+            // --- EZ A RÉSZ HIÁNYZOTT EDDIG: A STÁTUSZ FRISSÍTÉSE ---
+            if (!string.IsNullOrEmpty(request.Status))
             {
-                var customerExists = await _worksRepository.IdExists(customerId.Value);
-                if (!customerExists)
-                {
-                    throw new ArgumentException("A megadott ügyfél (CustomerId) nem létezik!");
-                }
-                work.CustomerId = customerId.Value;
+                work.Status = request.Status;
             }
+
+
+            // Mivel változhatott a kategória, újraszámoljuk az időt az EREDETI (adatbázisos) évjárat és súlyosság alapján
+            work.EstimatedHours = _worksRepository.CalculateMultiplier(work.Category, work.seriousness, work.ProductionYear);
 
             // 3. Mentés
             await _worksRepository.UpdateAsync(work);
-            return (IActionResult)work;
+
+            // 4. Visszaadjuk a sikeres eredményt az újrafelhasználáshoz
+            return new OkObjectResult(work);
         }
     }
 }
-

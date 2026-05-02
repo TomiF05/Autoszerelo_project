@@ -32,7 +32,7 @@ else
                         <th style="width: 80px">ID</th>
                         <th>Név</th>
                         <th>E-mail cím</th>
-                        <th>Telefonszám</th>
+                        <th>Rendszámok</th> @* <--- FEJLÉC ÁTÍRVA *@
                     </tr>
                 </thead>
                 <tbody>
@@ -42,6 +42,16 @@ else
                             <td><span class="badge bg-secondary">@customer.Id</span></td>
                             <td class="fw-bold">@customer.Name</td>
                             <td>@customer.Email</td>
+                            <td>
+                                @* <--- RENDSZÁMOK LISTÁZÁSA *@
+                                @if (customer.Works != null && customer.Works.Any())
+                                {
+                                    @foreach (var work in customer.Works)
+                                    {
+                                        <span class="badge bg-info text-dark me-1 border border-info">@work.LicensePlate</span>
+                                    }
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>

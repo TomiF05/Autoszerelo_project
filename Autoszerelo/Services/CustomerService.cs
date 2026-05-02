@@ -23,7 +23,20 @@ namespace Autoszerelo.Services
                 Id = customer.Id,
                 Name = customer.Name,
                 Email = customer.Email,
-                Address = customer.Address
+                Address = customer.Address,
+                // EZT A RÉSZT ADTUK HOZZÁ:
+                Works = customer.Works?.Select(w => new WorkDto
+                {
+                    Id = w.Id,
+                    CustomerId = w.CustomerId,
+                    LicensePlate = w.LicensePlate,
+                    ManufactureYear = w.ProductionYear,
+                    Category = w.Category,
+                    FaultDescription = w.FaultDescription,
+                    Seriousness = w.seriousness,
+                    Status = w.Status,
+                    EstimatedHours = w.EstimatedHours
+                }).ToList() ?? new List<WorkDto>()
             };
         }
 
@@ -36,7 +49,7 @@ namespace Autoszerelo.Services
         //    };
         //}
 
-         //--- Összes ügyfél lekérése szűréssel ---
+        //--- Összes ügyfél lekérése szűréssel ---
         public async Task<IEnumerable<CustomerDto>> GetCustomersAsync(FilterCustomerDto? filter)
         {
             // Itt küldjük le a szűrési feltételeket a Repository-nak

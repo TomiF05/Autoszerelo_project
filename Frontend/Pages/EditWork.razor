@@ -1,0 +1,104 @@
+﻿@page "/edit-work/{Id:int}"
+@using Frontend.Services
+@using Shared
+@inject IWorkRepository WorkRepository
+@inject NavigationManager NavManager
+
+<h3 class="mb-4">Munka módosítása</h3>
+
+@if (_work == null)
+{
+    <div class="spinner-border text-primary" role="status"></div>
+}
+else
+{
+    <div class="card p-4 shadow-sm" style="max-width: 600px;">
+        <div class="card-body">
+            <EditForm Model="_work" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Rendszám:</label>
+                    <InputText @bind-Value="_work.LicensePlate" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Kategória:</label>
+                    <InputSelect @bind-Value="_work.Category" class="form-select">
+                        <option value="motor">Motor</option>
+                        <option value="karosszéria">Karosszéria</option>
+                        <option value="futómű">Futómű</option>
+                        <option value="fékberendezés">Fékberendezés</option>
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Hiba leírása:</label>
+                    <InputTextArea @bind-Value="_work.FaultDescription" class="form-control" />
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Státusz:</label>
+                    <InputSelect @bind-Value="_work.Status" class="form-select">
+                        @* Dinamikusan töltjük fel a legördülőt *@
+                        @foreach (var status in _availableStatuses)
+                        {
+                            <option value="@status">@status</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="d-flex gap-2 pt-2">
+                    <button type="submit" class="btn btn-primary px-4">Mentés</button>
+                    <a href="/works" class="btn btn-outline-secondary px-4">Mégsem</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private WorkDto? _work;
+    
+    // A státuszok sorrendje
+    private readonly string[] _allStatuses = { "Felvett", "Elvégzés alatt", "Befejezett" };
+    private List<string> _availableStatuses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _work = await WorkRepository.GetWorkByIdAsync(Id);
+        
+        if (_work != null)
+        {
+            // Megnézzük, hányadik a sorban a jelenlegi státusz
+            int currentIndex = Array.IndexOf(_allStatuses, _work.Status ?? "Felvett");
+            if (currentIndex == -1) currentIndex = 0;
+
+            // Csak az adott státuszt és a listában utána jövőket engedjük beállítani
+            for (int i = currentIndex; i < _allStatuses.Length; i++)
+            {
+                _availableStatuses.Add(_allStatuses[i]);
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_work != null)
+        {
+            var updateRequest = new UpdateWorkRequest
+            {
+                LicensePlate = _work.LicensePlate,
+                Category = _work.Category,
+                FaultDescription = _work.FaultDescription,
+                Status = _work.Status
+            };
+
+            await WorkRepository.UpdateWorkAsync(Id, updateRequest);
+            NavManager.NavigateTo("/works");
+        }
+    }
+}

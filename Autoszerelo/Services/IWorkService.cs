@@ -1,5 +1,6 @@
 ﻿using Autoszerelo.models;
 using Microsoft.AspNetCore.Mvc;
+using Shared;
 
 namespace Autoszerelo.Services
 {
@@ -18,14 +19,7 @@ namespace Autoszerelo.Services
         Task<ActionResult<Works>> GetWorkById(int id);
         Task<IActionResult> DeleteWork(int id);
 
-        Task<IActionResult> PutWork(
-        int id,
-        string? licensePlate = null,
-        int? productionYear = null,
-        int? seriousness = null,
-        string? faultDescription = null,
-        string? category = null,
-        int? customerId = null);
+        Task<IActionResult> PutWork(int id, UpdateWorkRequest request);
         Task<ActionResult<Works>> ChangeStatus(int id);
 
 
