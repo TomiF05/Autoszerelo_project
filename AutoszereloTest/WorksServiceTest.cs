@@ -6,6 +6,7 @@ using System.Text;
 using Xunit;
 using NSubstitute;
 using Autoszerelo.Data;
+using Autoszerelo.models;
 
 namespace AutoszereloServicesTest
 {
@@ -81,7 +82,23 @@ namespace AutoszereloServicesTest
             Assert.Equal(1, work.CustomerId);
         }
 
-        
+        [Fact]
+
+        public async Task GetCustomerByWorkId_ReturnsCustomer()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var customer = new Customer
+            {
+                Id = 1,
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
+            };
+            repository.GetCustomerByWorkId(1).Returns(customer);
+            var eredmeny = await workService.GetCustomerByWorkId(1);
+            Assert.Equal(customer, eredmeny.Value);
+        }
 
     }
 }
