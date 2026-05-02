@@ -127,6 +127,16 @@ namespace AutoszereloTest
 
             Assert.Equal("Nem található a törölni kívánt ügyfél", uzenet.Message);
         }
+        [Fact]
+        public async Task GetCustomerByIdAsync_ReturnsNull_WhenCustomerNotFound()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCustomerId = 100;
+            var result = await customerService.GetCustomerByIdAsync(rosszCustomerId);
+            Assert.Null(result);
+        }
+    
     } 
 
 }
