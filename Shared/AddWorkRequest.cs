@@ -13,7 +13,7 @@ namespace Shared
         [Required]
         [RegularExpression(@"^[A-Z]{3}-\d{3}$")]
         [NoWhitespaceOnly]
-        public string LicensePlate { get; set; }
+        public string LicensePlate { get; set; } = string.Empty;
 
         [Required]
         [ValidProductionYear]
@@ -21,16 +21,15 @@ namespace Shared
 
         [Required]
         [RegularExpression(@"^(Karosszéria|Motor|Futómű|Fékberendezés)$")]
-        public string Category { get; set; }
+        public string Category { get; set; } = string.Empty;
 
         [Required]
         [NoWhitespaceOnly]
-        public string FaultDescription { get; set; }
+        public string FaultDescription { get; set; } = string.Empty;
 
         [Required]
         [Range(1,10)]
         public int Seriousness { get; set; }
-
-        //public string Status { get; set; } = "Felvett Munka";
+        public string Status { get; set; } = "Felvett Munka";
     }
 }

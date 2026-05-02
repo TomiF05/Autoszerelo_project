@@ -160,6 +160,10 @@ namespace Autoszerelo.Services
             // 1. Kikérjük az autót
             await _worksRepository.ChangeStatus(id);
             var result=await _worksRepository.GetByIdAsync(id);
+            if(result == null)
+            {
+                throw new ArgumentException("Hiba: Ilyen ID-jű munka nem létezik!");
+            }
             var work = new WorkDto
             {
                 Category=result.Category,
