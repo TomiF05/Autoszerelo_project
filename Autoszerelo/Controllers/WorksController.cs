@@ -76,17 +76,10 @@ namespace Autoszerelo.Controllers
         }
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutWork(
-        int id,
-        string? licensePlate = null,
-        int? productionYear = null,
-        int? seriousness = null,
-        string? faultDescription = null,
-        string? category = null,
-
-        int? customerId = null)
+        public async Task<IActionResult> PutWork(int id, [FromBody] UpdateWorkRequest request)
         {
-           return await _workService.PutWork(id, licensePlate, productionYear, seriousness, faultDescription, category, customerId);
+            // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
+            return await _workService.PutWork(id, request);
         }
         //státusz léptető
         [HttpPut("change-status/{id}")]

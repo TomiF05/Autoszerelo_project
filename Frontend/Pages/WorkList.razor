@@ -4,41 +4,91 @@
 @inject IWorkRepository WorkRepository
 @inject NavigationManager NavigationManager
 
-<h3>Munkák listája</h3>
+<h3 class="mb-4">Munkák listája</h3>
+
+<div class="mb-3">
+    <a class="btn btn-success" href="add-work">
+        <i class="bi bi-plus-circle"></i> Új munka felvétele
+    </a>
+</div>
 
 @if (_works is null)
 {
-    <p><em>Betöltés...</em></p>
+    <div class="d-flex align-items-center">
+        <strong>Betöltés...</strong>
+        <div class="spinner-border text-primary ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else if (!_works.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> Nincs még rögzített munka az adatbázisban.
+    </div>
 }
 else
 {
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Rendszám</th>
-                <th>Kategória</th>
-                <th>Állapot</th>
-                <th>Műveletek</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var work in _works)
-            {
-                <tr>
-                    <td>@work.LicensePlate</td>
-                    <td>@work.Category</td>
-                    <td>@work.Status</td>
-                    <td>
-                        @* A StudentList mintájára a részletek gomb *@
-                        <a class="btn btn-primary" href="works/@work.Id">Details</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    
-    <div class="mt-3">
-        <a class="btn btn-success" href="add-work">Új munka felvétele</a>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Rendszám</th>
+                        <th>Kategória</th>
+                        <th>Becsült idő</th>
+                        <th>Állapot</th>
+                        <th class="text-end">Műveletek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var work in _works)
+                    {
+                        <tr>
+                            <td class="fw-bold">
+                                <span class="badge border border-secondary text-secondary fs-6">@work.LicensePlate</span>
+                            </td>
+                            <td class="text-capitalize">@work.Category</td>
+                            
+                            <td>
+                                <strong>@work.EstimatedHours.ToString("0.#")</strong> óra
+                            </td>
+
+                            <td>
+                                @if (work.Status?.ToLower() == "befejezett")
+                                {
+                                    <span class="badge bg-success">@work.Status</span>
+                                }
+                                else if (work.Status?.ToLower() == "elvégzés alatt")
+                                {
+                                    <span class="badge bg-primary">@work.Status</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">@(string.IsNullOrEmpty(work.Status) ? "Felvett" : work.Status)</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    @* Részletek gomb *@
+                                    <a class="btn btn-sm btn-outline-primary" href="works/@work.Id" title="Részletek">
+                                        <i class="bi bi-info-circle"></i>
+                                    </a>
+                                    
+                                    @* Szerkesztés gomb *@
+                                    <a class="btn btn-sm btn-outline-warning" href="edit-work/@work.Id" title="Módosítás">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+
+                                    @* Törlés gomb *@
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteWork(work.Id)" title="Törlés">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 }
 
@@ -47,7 +97,23 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // A StudentRepository.GetAllStudentsAsync() mintájára
+        // Az oldal betöltésekor meghívjuk a listázást
+        await LoadWorks();
+    }
+
+    // Külön metódusba tettük a betöltést, hogy a törlés után újra tudjuk hívni
+    private async Task LoadWorks()
+    {
         _works = await WorkRepository.GetAllWorksAsync();
+    }
+
+    // --- Törlés funkció ---
+    private async Task DeleteWork(int id)
+    {
+        // 1. Szólunk az API-nak, hogy törölje
+        await WorkRepository.DeleteWorkAsync(id);
+        
+        // 2. Frissítjük a felületet (újra lekérjük az adatokat)
+        await LoadWorks();
     }
 }

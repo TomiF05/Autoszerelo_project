@@ -15,8 +15,9 @@ namespace Autoszerelo.Data
         }
         public async Task<IEnumerable<Customer>> GetCustomersAsync(int? id, string? name, string? address, string? email)
         {
-            // 1. Elindítjuk a lekérdezést
-            var query = _context.Customers.AsQueryable();
+            // 1. Elindítjuk a lekérdezést, BELEÉRTVE a munkákat is!
+            var query = _context.Customers.Include(c => c.Works).AsQueryable();
+
             if (id.HasValue)
             {
                 query = query.Where(c => c.Id == id.Value);
@@ -41,6 +42,12 @@ namespace Autoszerelo.Data
 
             // 5. Eredmény lekérése az adatbázisból
             return await query.ToListAsync();
+        }
+
+        public async Task<IEnumerable<Customer>> GetAllAsync()
+        {
+            // Ide is betesszük az Include-ot, ha valahol ezt használnád a kódodban
+            return await _context.Customers.Include(c => c.Works).ToListAsync();
         }
 
         public async Task AddAsync(Customer customer)
@@ -72,11 +79,6 @@ namespace Autoszerelo.Data
         public async Task<bool> EmailExistsForOtherCustomerAsync(int customerId, string email)
         {
             return await _context.Customers.AnyAsync(x => x.Id != customerId && x.Email.ToLower() == email.ToLower());
-        }
-
-        public async Task<IEnumerable<Customer>> GetAllAsync()
-        {
-            return await _context.Customers.ToListAsync();
         }
 
         public async Task<Customer?> GetByIdAsync(int id)

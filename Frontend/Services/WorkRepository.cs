@@ -21,9 +21,11 @@ namespace Frontend.Services
 
         public async Task<WorkDto> GetWorkByIdAsync(int id)
         {
-            var result = await _httpClient.GetFromJsonAsync<GetWorkByIdResponse>($"/api/works/{id}");
+            // Közvetlenül WorkDto-ként kérjük le, ahogy a lista esetében is!
+            var result = await _httpClient.GetFromJsonAsync<WorkDto>($"/api/works/{id}");
 
-            return result.Work;
+            // Ha nem találja, adunk egy üres objektumot, hogy ne dőljön össze
+            return result ?? new WorkDto();
         }
 
         public async Task AddWorkAsync(AddWorkRequest request)
