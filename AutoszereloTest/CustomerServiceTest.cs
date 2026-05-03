@@ -40,8 +40,8 @@ namespace AutoszereloServicesTest
             var rosszCustomerDto = new CustomerDto
             {
                 Name = "Kállai Péter",
-                Address = "Cím 1",
-                Email = "valami@gmail.com"
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
             };
 
             repository.EmailExistsAsync(rosszCustomerDto.Email).Returns(true);
@@ -59,14 +59,103 @@ namespace AutoszereloServicesTest
             var rosszCustomerDto = new CustomerDto
             {
                 Name = "",
-                Address = "Cím 1",
-                Email = "valami@gmail.com"
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
             };
 
 
             var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
 
             Assert.Equal("Nem adtál meg nevet!", uzenet.Message);
+        }
+        [Fact]
+        public async Task CreateCustomer_ThrowsException_WhenEmailIsInvalid()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCustomerDto = new CustomerDto
+            {
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1gmail.com"
+            };
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
+            Assert.Equal("Érvénytelen email formátum!",uzenet.Message);
+        }
+
+        [Fact]
+        public async Task CreateCustomer_ThrowsException_WhenEmailIsEmpty()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCustomerDto = new CustomerDto
+            {
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = ""
+            };
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
+            Assert.Equal("Nem adtál meg email címet!", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task CreateCustomer_ThrowsException_WhenAddressIsEmpty()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var rosszCustomerDto = new CustomerDto
+            {
+                Name = "Kállai Péter",
+                Address = "",
+                Email = "KallaiPeter1@gmail.com"
+            };
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => customerService.CreateCustomerAsync(rosszCustomerDto));
+            Assert.Equal("Nem adtál meg címet!", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task CreateCustomer_ReturnsCustomerDto_WhenEveryParameterIsValid()
+        { 
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var joCustomerDto = new CustomerDto
+            {
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
+            };
+            var eredmeny = await customerService.CreateCustomerAsync(joCustomerDto);
+            Assert.IsType<CustomerDto>(eredmeny);
+            Assert.Equal("Kállai Péter", eredmeny.Name);
+            Assert.Equal("Debrecen", eredmeny.Address);
+            Assert.Equal("KallaiPeter1@gmail.com", eredmeny.Email);
+        }
+
+        [Fact]
+        public async Task UpdateCustomer_ReturnsUpdatedCustomerDto_WhenValid()
+        {
+            var repository = Substitute.For<ICustomerRepository>();
+            var customerService = new CustomerService(repository);
+            var updatelniCustomerDto = new UpdateCustomerRequest
+            {
+                Id = 1,
+                Name = "Kállai Péter",
+                Address = "Debrecen",
+                Email = "KallaiPeter1@gmail.com"
+            };
+            var letezoCustomer = new Customer
+            {
+                Id = 1,
+                Name = "Kállai Tamás",
+                Address = "Debrecen",
+                Email = "KallaiTamas2@gmail.com"
+            };
+            repository.GetByIdAsync(updatelniCustomerDto.Id).Returns(letezoCustomer);
+            var eredmeny = await customerService.UpdateCustomerAsync(updatelniCustomerDto);
+            Assert.NotNull(eredmeny);
+            Assert.Equal("Kállai Péter", eredmeny.Name);
+            Assert.Equal("Debrecen", eredmeny.Address);
+            Assert.Equal("KallaiPeter1@gmail.com", eredmeny.Email);
         }
 
         [Fact]

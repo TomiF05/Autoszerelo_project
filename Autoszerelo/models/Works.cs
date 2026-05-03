@@ -14,7 +14,7 @@ namespace Autoszerelo.models
         
         public int seriousness { get; set; }
         public Double EstimatedHours { get; set; }
-        public string Status { get; set; } = "Felvett"; 
+        public string Status { get; set; } = "Felvett Munka"; 
         // Külső kulcs az ügyfélhez
         public int CustomerId { get; set; }
 
