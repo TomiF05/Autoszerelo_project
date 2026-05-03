@@ -24,6 +24,7 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery] GetWorkDto work)
         {
             return await _workService.GetWorksAsync(work);
@@ -57,15 +58,17 @@ namespace Autoszerelo.Controllers
         }
 
         //megadja id alapján a munkát
-        [HttpGet("GetWorkById")]
-        public async Task<ActionResult<WorkDto>> GetWorkById(IdDto id)
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<WorkDto>> GetWorkById(int id)
         {
-            return await _workService.GetWorkById(id.Id);
+            return await _workService.GetWorkById(id);
 
         }
 
         //id alpján töröl
-        [HttpDelete]
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteWork(IdDto id)
         {
             // 1. Megkeressük a munkát
@@ -74,39 +77,36 @@ namespace Autoszerelo.Controllers
 
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
         [HttpPut]
-        public async Task<IActionResult> PutWork([FromQuery] UpdateWorkRequest? request)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PutWork([FromBody] UpdateWorkRequest? request)
         {
             // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
             return await _workService.PutWork(request);
         }
 
         //státusz léptető
-        [HttpPut("change-status")]
+        [HttpPut("change-statu/{id}")]
         public async Task<ActionResult<WorkDto>> ChangeStatus(IdDto id)
         {
             return await _workService.ChangeStatus(id.Id);
         }
 
-        // --- ÚJ VÉGPONT: BEJELENTKEZETT ÜGYFÉL SAJÁT AUTÓINAK LEKÉRÉSE ---
         [HttpGet("my-works")]
-        [Authorize] // Ide csak az jöhet, akinek van tokenje (be van jelentkezve)
+        [Authorize] // Bárki aki be van jelentkezve
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
         {
-            // 1. Kinyerjük az ID-t a belépőkártyából (Tokenből)
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            Console.WriteLine($"DEBUG: Bejelentkezett User ID-ja a Tokenből: {userIdString}");
+            // KÖTELEZŐ: Ha ez nem jelenik meg a logban, akkor nem ide fut be a kérés!
+            Console.WriteLine($"---> VALÓDI GETMYWORKS FUT: ID = {userIdString}");
 
-            // Ha valamiért nem tudja számmá alakítani, hibát dob
-            if (!int.TryParse(userIdString, out int customerId))
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int customerId))
             {
-                return Unauthorized("Hiba a felhasználó azonosításakor!");
+                return Unauthorized();
             }
 
-            // 2. Meghívjuk a Service-t, hogy adja vissza csak ennek az ügyfélnek a kocsijait
-            var myWorks = await _workService.GetWorksByCustomerIdAsync(customerId);
-
-            return Ok(myWorks);
+            var works = await _workService.GetWorksByCustomerIdAsync(customerId);
+            return Ok(works);
         }
 
     }

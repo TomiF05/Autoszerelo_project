@@ -23,6 +23,7 @@ namespace Autoszerelo.Services
         // --- ÚJ METÓDUS: ÜGYFÉL SAJÁT MUNKÁINAK LEKÉRÉSE ---
         public async Task<List<WorkDto>> GetWorksByCustomerIdAsync(int customerId)
         {
+            Console.WriteLine($"---> SERVICE: Meghívom a Repot ezzel az ID-val: {customerId}");
             // A repository-n keresztül lekérjük az összes munkát alapból (szűrés nélkül)
             // A GetWorksAsync metódusodat használjuk, csak a CustomerId-t adjuk meg szűrőnek
             var actionResult = await _worksRepository.GetWorksAsync(customerId: customerId);

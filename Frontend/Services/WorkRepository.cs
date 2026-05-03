@@ -1,4 +1,7 @@
-﻿using Shared;
+﻿using Microsoft.JSInterop;
+using Microsoft.JSInterop;
+using Shared;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using static System.Net.WebRequestMethods;
 
@@ -7,19 +10,39 @@ namespace Frontend.Services
     public class WorkRepository : IWorkRepository
     {
         private readonly HttpClient _httpClient;
+        private readonly IJSRuntime _jsRuntime;
 
-        public WorkRepository(HttpClient httpClient)
+        public WorkRepository(HttpClient httpClient, IJSRuntime jsRuntime)
         {
             _httpClient = httpClient;
+            _jsRuntime = jsRuntime;
         }
 
+        // WorkRepository.cs
         public async Task<List<WorkDto>> GetAllWorksAsync()
         {
-            // Közvetlenül List<WorkDto>-ként olvassuk be a választ
-            var works = await _httpClient.GetFromJsonAsync<List<WorkDto>>("api/works");
-            return works ?? new List<WorkDto>();
-        }
+            try
+            {
+                // Kiolvassuk a tokent
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
+                if (!string.IsNullOrEmpty(token))
+                {
+                    // Beállítjuk a fejlécet
+                    _httpClient.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                }
+
+                // Itt hívod meg a sima listát
+                var response = await _httpClient.GetFromJsonAsync<List<WorkDto>>("api/works");
+                return response ?? new List<WorkDto>();
+            }
+            catch (Exception ex)
+            {
+                // Ha 401-et kapsz, ne dőljön össze az oldal, csak adjon vissza üres listát
+                return new List<WorkDto>();
+            }
+        }
         public async Task<WorkDto> GetWorkByIdAsync(int id)
         {
             // Közvetlenül WorkDto-ként kérjük le, ahogy a lista esetében is!
@@ -36,7 +59,19 @@ namespace Frontend.Services
 
         public async Task UpdateWorkAsync(int id, UpdateWorkRequest request)
         {
-            await _httpClient.PutAsJsonAsync($"/api/works/{id}", request);
+            // Ne felejtsd el a tokent itt is beállítani!
+            var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            // 2. Küldés a Backend-nek (az ID-t az URL-be tesszük)
+            var response = await _httpClient.PutAsJsonAsync($"api/works/{id}", request);
+
+            // 3. Ellenőrizzük, hogy sikerült-e
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteWorkAsync(int id)
@@ -52,14 +87,28 @@ namespace Frontend.Services
         {
             try
             {
-                // A Backend címe: api/Works/my-works
-                var response = await _httpClient.GetFromJsonAsync<List<WorkDto>>("api/Works/my-works");
-                return response ?? new List<WorkDto>();
-            }
-            catch (Exception)
-            {
+                var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+                if (string.IsNullOrEmpty(token)) return new List<WorkDto>();
+
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                var response = await _httpClient.GetAsync("api/Works/my-works");
+
+                if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // Ha még mindig 401, akkor a token nem érvényes vagy lejárt
+                    return new List<WorkDto>();
+                }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadFromJsonAsync<List<WorkDto>>() ?? new List<WorkDto>();
+                }
+
                 return new List<WorkDto>();
             }
+            catch { return new List<WorkDto>(); }
         }
     }
+
 }

@@ -4,6 +4,19 @@
 @inject IWorkRepository WorkRepository
 @inject NavigationManager NavigationManager
 
+@* WorkList.razor tetejére vagy a NavMenu-be *@
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @* Csak az Admin látja a teljes listát *@
+        <h3>Összes munka (Admin felület)</h3>
+        @* Itt a táblázat... *@
+    </Authorized>
+    <NotAuthorized>
+        @* A sima User ezt látja, ha ide téved *@
+        <p>Nincs jogosultságod az összes munka megtekintéséhez. Kérlek menj a 'Saját autóim' menüponthoz!</p>
+    </NotAuthorized>
+</AuthorizeView>
+
 <h3 class="mb-4">Munkák listája</h3>
 
 <div class="mb-3">
