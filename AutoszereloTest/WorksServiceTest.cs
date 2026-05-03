@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using Shared;
-using Autoszerelo.Services;
-using System.Text;
-using Xunit;
-using NSubstitute;
-using Autoszerelo.Data;
+﻿using Autoszerelo.Data;
 using Autoszerelo.models;
+using Autoszerelo.Services;
+using Castle.Core.Resource;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using NSubstitute;
+using Shared;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Xunit;
 
 namespace AutoszereloServicesTest
 {
@@ -202,6 +203,110 @@ namespace AutoszereloServicesTest
             var kibontott = eredmeny.Value;
             Assert.NotNull(kibontott);
             Assert.Equal("Befejezett", kibontott.Status);
+        }
+        [Fact]
+
+        public async Task PutWork_ThrowsException_WhenLicensePlateIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var hibas = new UpdateWorkRequest {
+                LicensePlate = "HIBAAS",
+                Id = 1
+            };
+            var work = new Works
+            {
+                Id = 1
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
+            Assert.Equal("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PutWork_ReturnsNotFoundResult_WhenWorkDoesNotExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.GetByIdAsync(999).Returns((Works?)null);
+            var hibas = new UpdateWorkRequest { Id = 999 };
+            var eredmeny = await workService.PutWork(hibas);
+            Assert.IsType<NotFoundResult>(eredmeny);
+        }
+
+        [Fact]
+        public async Task PutWork_ThrowsException_WhenCategoryIsNotContained()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var hibas = new UpdateWorkRequest
+            {
+                Id = 1,
+                Category = "RandomKategória"
+            };
+            var work = new Works
+            {
+                Id = 1
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
+            Assert.Equal("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PutWork_ReturnsOkObjectResult_WhenWorkIsUpdated()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var update = new UpdateWorkRequest
+            {
+                Id = 1,
+                LicensePlate = "ABC-123",
+                Category = "motor",
+                ProductionYear = 2010,
+                FaultDescription = "hibas"
+            };
+            var work = new Works
+            {
+                Id = 1,
+                LicensePlate = "ABD-123",
+                Category = "motor",
+                ProductionYear = 2010,
+                FaultDescription = "Hibas kezd lenni"
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var eredmeny = await workService.PutWork(update);
+            Assert.IsType<OkObjectResult>(eredmeny);
+
+        }
+
+        [Fact]
+        public async Task GetWorksByCutomerIdAsync_ReturnsListOfWorks_WhenCustomerHasWorks()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var munkak = new List<Works>
+            {
+                new Works { Id = 1, LicensePlate = "ABC-123", ProductionYear = 2010, FaultDescription = "Nem indul", Category = "motor", seriousness = 2, CustomerId = 1 },
+                new Works { Id = 2, LicensePlate = "DEF-456", ProductionYear = 2015, FaultDescription = "Fékhiba", Category = "fékberendezés",seriousness = 3, CustomerId = 1 }
+            };
+                
+            repository.GetWorksAsync(null,null,null,null,null,null,1).Returns(munkak);
+            var eredmeny = await workService.GetWorksByCustomerIdAsync(1);
+            Assert.NotNull(eredmeny);
+            Assert.Equal(2, eredmeny.Count);
+        }
+
+        [Fact]
+        public async Task GetWorksByCustomerIdAsync_ReturnsEmptyList_WhenCustomerHasNoWorks()
+        { 
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var munkak = new List<Works>();
+            repository.GetWorksAsync(null, null, null, null, null, null, 2).Returns(munkak);
+            var eredmeny = await workService.GetWorksByCustomerIdAsync(2);
+            Assert.NotNull(eredmeny);
+            Assert.Empty(eredmeny);
         }
     }
 }
