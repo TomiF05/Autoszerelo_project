@@ -64,7 +64,7 @@ else
     private WorkDto? _work;
     
     // A státuszok sorrendje
-    private readonly string[] _allStatuses = { "Felvett", "Elvégzés alatt", "Befejezett" };
+    private readonly string[] _allStatuses = { "Felvett Munka", "Elvégzés alatt", "Befejezett" };
     private List<string> _availableStatuses = new();
 
     protected override async Task OnInitializedAsync()
@@ -74,7 +74,7 @@ else
         if (_work != null)
         {
             // Megnézzük, hányadik a sorban a jelenlegi státusz
-            int currentIndex = Array.IndexOf(_allStatuses, _work.Status ?? "Felvett");
+            int currentIndex = Array.IndexOf(_allStatuses, _work.Status ?? "Felvett Munka");
             if (currentIndex == -1) currentIndex = 0;
 
             // Csak az adott státuszt és a listában utána jövőket engedjük beállítani
