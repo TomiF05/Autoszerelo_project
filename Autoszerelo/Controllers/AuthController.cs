@@ -52,7 +52,7 @@ namespace Autoszerelo.Controllers
 
             var user = await _context.Customers.FirstOrDefaultAsync(c => c.Email == request.Email);
 
-            if (user == null)
+            if (user == null || user.Password != request.Password)
             {
                 return Unauthorized("Nincs ilyen e-mail!");
             }

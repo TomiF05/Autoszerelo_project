@@ -49,7 +49,8 @@ namespace Autoszerelo.Controllers
                 {
                     Name = request.Name,
                     Email = request.Email,
-                    Address = request.Address
+                    Address = request.Address,
+                    Password = request.Password
                 };
             try
             {

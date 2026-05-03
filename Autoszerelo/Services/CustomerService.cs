@@ -24,6 +24,7 @@ namespace Autoszerelo.Services
                 Name = customer.Name,
                 Email = customer.Email,
                 Address = customer.Address,
+                Password = customer.Password,
                 // EZT A RÉSZT ADTUK HOZZÁ:
                 Works = customer.Works?.Select(w => new WorkDto
                 {
@@ -141,7 +142,8 @@ namespace Autoszerelo.Services
             {
                 Name = customer.Name,
                 Address = customer.Address,
-                Email = customer.Email
+                Email = customer.Email,
+                Password = customer.Password
             };
 
             await _customerRepository.AddAsync(newCustomer);
