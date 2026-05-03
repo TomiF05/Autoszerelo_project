@@ -240,7 +240,7 @@ namespace Autoszerelo.Services
                 {
                     return new BadRequestObjectResult(new { message = "Nem megfelelő státusz! Ilyen státusz nem létezik a rendszerben." });
                 }
-                if(stat.IndexOf(request.Status) >= stat.IndexOf(work.Status.ToLower())) {
+                if(stat.IndexOf(request.Status) < stat.IndexOf(work.Status.ToLower())) {
                     work.Status = request.Status;
                 }
                 else
