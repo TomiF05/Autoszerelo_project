@@ -24,7 +24,7 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery] GetWorkDto work)
         {
             return await _workService.GetWorksAsync(work);
@@ -91,14 +91,14 @@ namespace Autoszerelo.Controllers
         }
 
         //státusz léptető
-        [HttpPut("change-statu/{id}")]
+        [HttpPut("change-status/{id}")]
         public async Task<ActionResult<WorkDto>> ChangeStatus(IdDto id)
         {
             return await _workService.ChangeStatus(id.Id);
         }
 
         [HttpGet("my-works")]
-        [Authorize] // Bárki aki be van jelentkezve
+        [AllowAnonymous] // Bárki aki be van jelentkezve
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -110,6 +110,12 @@ namespace Autoszerelo.Controllers
 
             var works = await _workService.GetWorksByCustomerIdAsync(customerId);
             return Ok(works);
+        }
+        [HttpGet("ping")]
+        [Authorize]
+        public IActionResult Ping()
+        {
+            return Ok("A Backend lát téged!");
         }
 
     }
