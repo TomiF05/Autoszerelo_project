@@ -24,7 +24,7 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery] GetWorkDto work)
         {
             return await _workService.GetWorksAsync(work);
@@ -59,7 +59,7 @@ namespace Autoszerelo.Controllers
 
         //megadja id alapján a munkát
         [HttpGet("{id}")]
-        [Authorize]
+        //[Authorize]
         public async Task<ActionResult<WorkDto>> GetWorkById(int id)
         {
             return await _workService.GetWorkById(id);
@@ -68,7 +68,7 @@ namespace Autoszerelo.Controllers
 
         //id alpján töröl
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteWork(int id)
         {
             // 1. Megkeressük a munkát
@@ -77,7 +77,7 @@ namespace Autoszerelo.Controllers
 
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutWork(int id, [FromBody] UpdateWorkRequest? request)
         {
             if (request == null) return BadRequest("A kérés üres.");
@@ -98,7 +98,7 @@ namespace Autoszerelo.Controllers
         }
 
         [HttpGet("my-works")]
-        [AllowAnonymous] // Bárki aki be van jelentkezve
+        //[Authorize] // Bárki aki be van jelentkezve
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -112,7 +112,7 @@ namespace Autoszerelo.Controllers
             return Ok(works);
         }
         [HttpGet("ping")]
-        [Authorize]
+        //[Authorize]
         public IActionResult Ping()
         {
             return Ok("A Backend lát téged!");
