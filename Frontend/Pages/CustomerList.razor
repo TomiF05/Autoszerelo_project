@@ -32,7 +32,8 @@ else
                         <th style="width: 80px">ID</th>
                         <th>Név</th>
                         <th>E-mail cím</th>
-                        <th>Rendszámok</th> @* <--- FEJLÉC ÁTÍRVA *@
+                        <th>Rendszámok</th>
+                        <th class="text-end">Műveletek</th> @* <--- 1. ÚJ FEJLÉC A GOMBOKNAK *@
                     </tr>
                 </thead>
                 <tbody>
@@ -43,7 +44,6 @@ else
                             <td class="fw-bold">@customer.Name</td>
                             <td>@customer.Email</td>
                             <td>
-                                @* <--- RENDSZÁMOK LISTÁZÁSA *@
                                 @if (customer.Works != null && customer.Works.Any())
                                 {
                                     @foreach (var work in customer.Works)
@@ -51,6 +51,17 @@ else
                                         <span class="badge bg-info text-dark me-1 border border-info">@work.LicensePlate</span>
                                     }
                                 }
+                            </td>
+                            <td class="text-end">
+                                @* <--- 2. SZERKESZTÉS ÉS TÖRLÉS GOMBOK *@
+                                <div class="btn-group">
+                                    <a class="btn btn-sm btn-outline-warning" href="edit-customer/@customer.Id" title="Szerkesztés">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => DeleteCustomer(customer.Id)" title="Törlés">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -65,7 +76,22 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // A hiba elkerülése végett várunk egy kicsit, amíg az API válaszol
+        await LoadCustomers();
+    }
+
+    // 3. Külön metódusba tettem a betöltést, hogy törlés után is meg lehessen hívni
+    private async Task LoadCustomers()
+    {
         customers = await CustomerRepo.GetAllAsync();
+    }
+
+    // 4. A törlés metódusa
+    private async Task DeleteCustomer(int id)
+    {
+        // Ha a Te repository-dban máshogy hívják a törlést (pl. DeleteCustomerAsync), akkor azt írd ide!
+        await CustomerRepo.DeleteAsync(id);
+        
+        // Frissítjük a listát, hogy a törölt ügyfél eltűnjön a képernyőről
+        await LoadCustomers();
     }
 }

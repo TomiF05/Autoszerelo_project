@@ -1,0 +1,88 @@
+﻿@page "/edit-customer/{Id:int}"
+@using Shared
+@using Frontend.Services
+@inject ICustomerRepository CustomerRepo
+@inject NavigationManager NavManager
+
+<h3 class="mb-4">Ügyfél adatainak szerkesztése</h3>
+
+@if (customer == null)
+{
+    <div class="d-flex align-items-center">
+        <strong>Adatok betöltése...</strong>
+        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <EditForm Model="customer" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Név:</label>
+                    <InputText @bind-Value="customer.Name" class="form-control" placeholder="Ügyfél teljes neve" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">E-mail cím:</label>
+                    <InputText @bind-Value="customer.Email" type="email" class="form-control" placeholder="pelda@email.hu" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Cím:</label>
+                    <InputText @bind-Value="customer.Address" class="form-control" placeholder="Irányítószám, Város, Utca, Házszám" />
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Mentés
+                    </button>
+                    <button type="button" class="btn btn-secondary" @onclick="GoBack">
+                        Mégse
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    // Ez kapja meg az URL-ből a számot (pl. /edit-customer/5 esetén az Id = 5 lesz)
+    [Parameter]
+    public int Id { get; set; }
+
+    // Ebbe töltjük be az ügyfél adatait (Nézd meg, hogy nálad CustomerDto-nak hívják-e a Shared projektben)
+    private CustomerDto? customer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 1. Lekérjük az ügyfelet az API-ról az ID alapján
+        customer = await CustomerRepo.GetByIdAsync(Id);
+
+        // Ha véletlenül rossz ID-t írnak be az URL-be, visszadobjuk őket a listára
+        if (customer == null)
+        {
+            NavManager.NavigateTo("/customers");
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (customer != null)
+        {
+            // 2. Elküldjük a módosított adatokat a szervernek
+            await CustomerRepo.UpdateAsync(customer);
+            
+            // 3. Ha sikeres a mentés, visszanavigálunk a listához
+            NavManager.NavigateTo("/customers");
+        }
+    }
+
+    private void GoBack()
+    {
+        NavManager.NavigateTo("/customers");
+    }
+}

@@ -189,7 +189,7 @@ namespace Autoszerelo.Data
             // 2. Logika a léptetéshez
             // Felvett Munka -> Elvégzés alatt -> Befejezett
 
-            if (work.Status == "Felvett")
+            if (work.Status == "Felvett Munka")
             {
                 work.Status = "Elvégzés alatt";
             }

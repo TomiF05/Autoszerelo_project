@@ -1,0 +1,51 @@
+﻿@page "/my-cars"
+@using Shared
+@using Frontend.Services
+@attribute [Authorize]
+@inject IWorkRepository WorkRepo
+
+<div class="container mt-4">
+    <h3 class="mb-4 text-primary"><i class="bi bi-car-front"></i> Saját autóim</h3>
+
+    @if (myWorks == null)
+    {
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+    }
+    else if (!myWorks.Any())
+    {
+        <div class="alert alert-info">Nincs még rögzített autód a rendszerben.</div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var work in myWorks)
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">@work.LicensePlate</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Hiba:</strong> @work.FaultDescription</p>
+                            <p><strong>Kategória:</strong> @work.Category</p>
+                            @* Itt jelenítjük meg az óraszámot egy tizedesjegyig *@
+                            <p><strong>Várható munkaidő:</strong> @work.EstimatedHours.ToString("0.0") óra</p>
+                            <span class="badge bg-info text-dark">Állapot: @work.Status</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<WorkDto>? myWorks;
+
+    protected override async Task OnInitializedAsync()
+    {
+        myWorks = await WorkRepo.GetMyWorksAsync();
+    }
+}

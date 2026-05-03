@@ -1,15 +1,18 @@
 ﻿using Autoszerelo.Data;
 using Autoszerelo.models;
 using Autoszerelo.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared;
 using System.ComponentModel;
 using System.Net;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+
 namespace Autoszerelo.Controllers
 {
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     [ApiController]
     public class WorksController : ControllerBase
     {
@@ -21,7 +24,8 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery]GetWorkDto work)
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery] GetWorkDto work)
         {
             return await _workService.GetWorksAsync(work);
         }
@@ -35,7 +39,7 @@ namespace Autoszerelo.Controllers
             await _workService.PostWork(
                 request.LicensePlate,
                 request.ProductionYear,
-                request.FaultDescription, 
+                request.FaultDescription,
                 request.Category,
                 request.Seriousness,
                 request.CustomerId
@@ -46,40 +50,67 @@ namespace Autoszerelo.Controllers
 
         // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
         [HttpGet("customer")]
-        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId([FromQuery]IdDto id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId([FromQuery] IdDto id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
 
             return await _workService.GetCustomerByWorkId(id.Id);
         }
+
         //megadja id alapján a munkát
-        [HttpGet("GetWorkById")]
-        public async Task<ActionResult<WorkDto>> GetWorkById(IdDto id)
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<WorkDto>> GetWorkById(int id)
         {
-            return await _workService.GetWorkById(id.Id);
-            
+            return await _workService.GetWorkById(id);
+
         }
+
         //id alpján töröl
-        [HttpDelete]
-        public async Task<IActionResult> DeleteWork(IdDto id)
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteWork(int id)
         {
             // 1. Megkeressük a munkát
-            return await _workService.DeleteWork(id.Id);
+            return await _workService.DeleteWork(id);
         }
+
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
-        [HttpPut]
-        public async Task<IActionResult> PutWork([FromQuery] UpdateWorkRequest? request)
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> PutWork(int id, [FromBody] UpdateWorkRequest? request)
         {
+            if (request == null) return BadRequest("A kérés üres.");
+
+            if (id != request.Id)
+            {
+                return BadRequest($"ID mismatch! URL: {id}, Body: {request.Id}");
+            }
             // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
             return await _workService.PutWork(request);
         }
+
         //státusz léptető
-        [HttpPut("change-status")]
+        [HttpPut("change-statu/{id}")]
         public async Task<ActionResult<WorkDto>> ChangeStatus(IdDto id)
         {
             return await _workService.ChangeStatus(id.Id);
         }
 
+        [HttpGet("my-works")]
+        [Authorize] // Bárki aki be van jelentkezve
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int customerId))
+            {
+                return Unauthorized();
+            }
+
+            var works = await _workService.GetWorksByCustomerIdAsync(customerId);
+            return Ok(works);
+        }
 
     }
 }

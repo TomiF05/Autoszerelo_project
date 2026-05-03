@@ -4,6 +4,19 @@
 @inject IWorkRepository WorkRepository
 @inject NavigationManager NavigationManager
 
+@* WorkList.razor tetejére vagy a NavMenu-be *@
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @* Csak az Admin látja a teljes listát *@
+        <h3>Összes munka (Admin felület)</h3>
+        @* Itt a táblázat... *@
+    </Authorized>
+    <NotAuthorized>
+        @* A sima User ezt látja, ha ide téved *@
+        <p>Nincs jogosultságod az összes munka megtekintéséhez. Kérlek menj a 'Saját autóim' menüponthoz!</p>
+    </NotAuthorized>
+</AuthorizeView>
+
 <h3 class="mb-4">Munkák listája</h3>
 
 <div class="mb-3">
@@ -69,13 +82,7 @@ else
                             <td class="text-end">
                                 <div class="btn-group" role="group">
     
-                                    @* Státusz léptető gomb (Csak akkor látszik, ha nincs még befejezve) *@
-                                    @if (work.Status?.ToLower() != "befejezett")
-                                    {
-                                        <button class="btn btn-sm btn-outline-success" @onclick="() => AdvanceStatus(work.Id)" title="Következő státusz">
-                                            <i class="bi bi-arrow-right-circle"></i>
-                                        </button>
-                                    }
+                                  
 
                                     @* Részletek gomb *@
                                     <a class="btn btn-sm btn-outline-primary" href="works/@work.Id" title="Részletek">
@@ -123,15 +130,6 @@ else
         await WorkRepository.DeleteWorkAsync(id);
         
         // 2. Frissítjük a felületet (újra lekérjük az adatokat)
-        await LoadWorks();
-    }
-    // --- Státusz léptetése ---
-    private async Task AdvanceStatus(int id)
-    {
-        // Szólunk az API-nak, hogy léptesse a státuszt
-        await WorkRepository.ChangeStatusAsync(id);
-        
-        // Frissítjük a felületet, hogy egyből látszódjon az új állapot (és a színváltozás!)
         await LoadWorks();
     }
 }

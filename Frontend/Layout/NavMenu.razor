@@ -9,37 +9,85 @@
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
+        
+        @* --- EZT MINDENKI LÁTJA (Kijelentkezve is) --- *@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="works">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Munkák listája
-            </NavLink>
-        </div>
+        
+        @* --- CSAK AZ ADMINOK LÁTHATJÁK EZEKET --- *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="works">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Munkák listája (Összes)
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="add-work">
+                        <span class="bi bi-plus-square-nav-menu" aria-hidden="true"></span> Új munka felvétele
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="customers">
+                        <span class="bi bi-people-fill" aria-hidden="true"></span> Ügyfelek kezelése
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
 
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="add-work">
-                <span class="bi bi-plus-square-nav-menu" aria-hidden="true"></span> Új munka
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="customers">
-                <span class="bi bi-people-fill" aria-hidden="true"></span> Ügyfelek
-            </NavLink>
-        </div>
+        @* --- CSAK AZ ÜGYFELEK (USER) LÁTJÁK --- *@
+        <AuthorizeView Roles="User">
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="my-cars">
+                        <span class="bi bi-truck-nav-menu" aria-hidden="true"></span> Saját autóim
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <hr style="border-color: gray; margin: 10px 15px;" />
+
+        @* --- BE- ÉS KIJELENTKEZÉS SZEKCIÓ --- *@
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3 mb-2 text-light" style="font-size: 0.9em;">
+                    <i>Bejelentkezve</i>
+                </div>
+                <div class="nav-item px-3">
+                    <button class="btn btn-outline-danger w-100 btn-sm" @onclick="Logout">Kijelentkezés</button>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link text-info" href="login">
+                        <span class="bi bi-box-arrow-in-right" aria-hidden="true"></span> Bejelentkezés
+                    </NavLink>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+
     </nav>
 </div>
 
 @code {
     private bool collapseNavMenu = true;
-
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    [Inject] private Frontend.Services.IAuthService AuthService { get; set; } = default!;
+    [Inject] private NavigationManager NavManager { get; set; } = default!;
 
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        NavManager.NavigateTo("/login");
     }
 }

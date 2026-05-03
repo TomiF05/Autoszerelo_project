@@ -17,7 +17,6 @@ namespace Shared
         [ValidProductionYear]
         public int? ProductionYear { get; set; }
 
-        [RegularExpression(@"^(Karosszéria|Motor|Futómű|Fékberendezés)$")]
         public string? Category { get; set; }
 
         [NoWhitespaceOnly]
@@ -25,6 +24,7 @@ namespace Shared
 
         [Range(1,10)]
         public int? Seriousness { get; set; }
+        public string? Status { get; set; }
 
         //[RegularExpression(@"^(Felvett Munka|Elvégzés alatt|Befejezett)$")]
         //public string? Status { get; set; }

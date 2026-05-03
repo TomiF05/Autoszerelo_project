@@ -26,9 +26,36 @@ namespace Autoszerelo.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
         {
+            if (request.Email == "admin@admin.hu" && request.Password == "admin")
+            {
+                var adminTokenHandler = new JwtSecurityTokenHandler();
+                var adminKey = Encoding.ASCII.GetBytes(_config["JwtSettings:SecretKey"]!);
+                var adminDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new[]
+                    {
+                new Claim(ClaimTypes.NameIdentifier, "999"),
+                new Claim(ClaimTypes.Email, "admin@admin.hu"),
+                new Claim(ClaimTypes.Role, "Admin"), // Ő admin lesz!
+                new Claim(ClaimTypes.Name, "Főnök Úr")
+            }),
+                    Expires = DateTime.UtcNow.AddDays(1),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(adminKey), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var aToken = adminTokenHandler.CreateToken(adminDescriptor);
+
+                return Ok(new LoginResponse { Token = adminTokenHandler.WriteToken(aToken), Role = "Admin", Name = "Főnök Úr" });
+            }
             // 1. Megkeressük az usert email ÉS jelszó alapján
-            var user = await _context.Customers
-                .FirstOrDefaultAsync(c => c.Email == request.Email && c.Password == request.Password);
+            //var user = await _context.Customers
+            //.FirstOrDefaultAsync(c => c.Email == request.Email && c.Password == request.Password);
+
+            var user = await _context.Customers.FirstOrDefaultAsync(c => c.Email == request.Email);
+
+            if (user == null || user.Password != request.Password)
+            {
+                return Unauthorized("Nincs ilyen e-mail!");
+            }
 
             // Ha nincs ilyen, vagy rossz a jelszó
             if (user == null)

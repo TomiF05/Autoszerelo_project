@@ -16,6 +16,7 @@ namespace Autoszerelo.Services
         Task<IActionResult> PutWork(UpdateWorkRequest request);
         Task<ActionResult<WorkDto>> ChangeStatus(int id);
 
+        Task<List<WorkDto>> GetWorksByCustomerIdAsync(int customerId);
 
     }
 }
