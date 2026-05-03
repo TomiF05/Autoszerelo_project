@@ -14,7 +14,7 @@ namespace Autoszerelo.Services
         private readonly IWorksRepository _worksRepository;
         private readonly string[] allowedCategories = new[] { "motor", "karosszéria", "futómű", "fékberendezés" };
         private const string pattern = @"^([A-Z]{3}-\d{3}|[A-Z]{2}-[A-Z]{2}-\d{3})$";
-
+        private readonly string[] stat = {"felvett munka", "elvégzés alatt", "befejezett" };
         public WorkService(IWorksRepository worksRepository)
         {
             _worksRepository = worksRepository;
@@ -236,7 +236,17 @@ namespace Autoszerelo.Services
             // --- Állapot frissítése (Ez az előbb kimaradt, most pótoljuk) ---
             if (!string.IsNullOrEmpty(request.Status))
             {
-                work.Status = request.Status;
+                if(!stat.Contains(request.Status.ToLower()))
+                {
+                    return new BadRequestObjectResult(new { message = "Nem megfelelő státusz! Ilyen státusz nem létezik a rendszerben." });
+                }
+                if(stat.IndexOf(request.Status) >= stat.IndexOf(work.Status.ToLower())) {
+                    work.Status = request.Status;
+                }
+                else
+                {
+                    return new BadRequestObjectResult(new { message = "Nem megfelelő státusz! A státusz nem léptethető visszafelé." });
+                }
             }
 
             // --- Újraszámolás ---
