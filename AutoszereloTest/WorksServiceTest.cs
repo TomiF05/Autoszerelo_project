@@ -203,5 +203,34 @@ namespace AutoszereloServicesTest
             Assert.NotNull(kibontott);
             Assert.Equal("Befejezett", kibontott.Status);
         }
+        [Fact]
+
+        public async Task PutWork_ThrowsException_WhenLicensePlateIsInvalid()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var hibas = new UpdateWorkRequest {
+                LicensePlate = "HIBAAS",
+                Id = 1
+            };
+            var work = new Works
+            {
+                Id = 1
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
+            Assert.Equal("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PutWork_ReturnsNotFoundResult_WhenWorkDoesNotExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.GetByIdAsync(999).Returns((Works?)null);
+            var hibas = new UpdateWorkRequest { Id = 999 };
+            var eredmeny = await workService.PutWork(hibas);
+            Assert.IsType<NotFoundResult>(eredmeny);
+        }
     }
 }
