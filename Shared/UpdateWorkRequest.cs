@@ -17,7 +17,6 @@ namespace Shared
         [ValidProductionYear]
         public int? ProductionYear { get; set; }
 
-        [RegularExpression(@"^(Karosszéria|Motor|Futómű|Fékberendezés)$")]
         public string? Category { get; set; }
 
         [NoWhitespaceOnly]

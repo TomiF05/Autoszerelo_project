@@ -69,17 +69,23 @@ namespace Autoszerelo.Controllers
         //id alpján töröl
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteWork(IdDto id)
+        public async Task<IActionResult> DeleteWork(int id)
         {
             // 1. Megkeressük a munkát
-            return await _workService.DeleteWork(id.Id);
+            return await _workService.DeleteWork(id);
         }
 
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
-        [HttpPut]
+        [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> PutWork([FromBody] UpdateWorkRequest? request)
+        public async Task<IActionResult> PutWork(int id, [FromBody] UpdateWorkRequest? request)
         {
+            if (request == null) return BadRequest("A kérés üres.");
+
+            if (id != request.Id)
+            {
+                return BadRequest($"ID mismatch! URL: {id}, Body: {request.Id}");
+            }
             // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
             return await _workService.PutWork(request);
         }
@@ -96,9 +102,6 @@ namespace Autoszerelo.Controllers
         public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
         {
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // KÖTELEZŐ: Ha ez nem jelenik meg a logban, akkor nem ide fut be a kérés!
-            Console.WriteLine($"---> VALÓDI GETMYWORKS FUT: ID = {userIdString}");
 
             if (string.IsNullOrEmpty(userIdString) || !int.TryParse(userIdString, out int customerId))
             {

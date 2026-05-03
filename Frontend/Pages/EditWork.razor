@@ -25,10 +25,11 @@ else
                 <div class="mb-3">
                     <label class="form-label fw-bold">Kategória:</label>
                     <InputSelect @bind-Value="_work.Category" class="form-select">
-                        <option value="motor">Motor</option>
-                        <option value="karosszéria">Karosszéria</option>
-                        <option value="futómű">Futómű</option>
-                        <option value="fékberendezés">Fékberendezés</option>
+                        @* Fontos: a 'value' legyen ugyanaz, mint amit a szerver vár! *@
+                        <option value="Motor">Motor</option>
+                        <option value="Karosszéria">Karosszéria</option>
+                        <option value="Futómű">Futómű</option>
+                        <option value="Fékberendezés">Fékberendezés</option>
                     </InputSelect>
                 </div>
 
@@ -69,10 +70,32 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _work = await WorkRepository.GetWorkByIdAsync(Id);
+        try
+        {
+            _work = await WorkRepository.GetWorkByIdAsync(Id);
         
+            if (_work == null)
+            {
+                // Ha nem találja vagy nem vagy jogosult, menjen vissza a listára
+                NavManager.NavigateTo("/works");
+                return;
+            }
+
+            // Státuszok beállítása (a korábbi kódod...)
+            SetupStatusList();
+        }
+        catch (Exception)
+        {
+            NavManager.NavigateTo("/login");
+        }
+    }
+
+    private void SetupStatusList()
+    {
         if (_work != null)
         {
+            _availableStatuses.Clear(); // Biztonság kedvéért ürítjük
+            
             // Megnézzük, hányadik a sorban a jelenlegi státusz
             int currentIndex = Array.IndexOf(_allStatuses, _work.Status ?? "Felvett");
             if (currentIndex == -1) currentIndex = 0;
@@ -89,22 +112,17 @@ else
     {
         if (_work != null)
         {
-            // 1. Az objektumnak tudnia kell, melyik rekordot módosítjuk!
             var updateRequest = new UpdateWorkRequest
             {
-                Id = Id, // <--- EZT PÓTOLD!
+                Id = this.Id, // <--- KRITIKUS: Ezt ne felejtsd ki!
                 LicensePlate = _work.LicensePlate,
                 Category = _work.Category,
                 FaultDescription = _work.FaultDescription,
                 Status = _work.Status
-                // Ha van a DTO-ban ProductionYear vagy Seriousness, azokat is érdemes ideírni
             };
 
-            // 2. Küldés a Repository-nak
             await WorkRepository.UpdateWorkAsync(Id, updateRequest);
-        
-            // 3. Navigáció kényszerített újratöltéssel, hogy biztosan az új adatot lásd
-            NavManager.NavigateTo("/works", forceLoad: true);
+            NavManager.NavigateTo("/works");
         }
     }
 }

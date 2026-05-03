@@ -43,13 +43,28 @@ namespace Frontend.Services
                 return new List<WorkDto>();
             }
         }
-        public async Task<WorkDto> GetWorkByIdAsync(int id)
+        public async Task<WorkDto?> GetWorkByIdAsync(int id)
         {
-            // Közvetlenül WorkDto-ként kérjük le, ahogy a lista esetében is!
-            var result = await _httpClient.GetFromJsonAsync<WorkDto>($"/api/works/{id}");
+            // 1. Token kiolvasása a böngészőből
+            var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
 
-            // Ha nem találja, adunk egy üres objektumot, hogy ne dőljön össze
-            return result ?? new WorkDto();
+            if (!string.IsNullOrEmpty(token))
+            {
+                // 2. Token berakása a fejlécbe
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+
+            try
+            {
+                // 3. Mehet a kérés
+                return await _httpClient.GetFromJsonAsync<WorkDto>($"api/works/{id}");
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // Ha mégis 401, akkor valószínűleg lejárt a munkameneted
+                return null;
+            }
         }
 
         public async Task AddWorkAsync(AddWorkRequest request)
@@ -76,7 +91,11 @@ namespace Frontend.Services
 
         public async Task DeleteWorkAsync(int id)
         {
-            await _httpClient.DeleteAsync($"/api/works/{id}");
+            var token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            // Csak az ID megy az URL végén, nincs Body!
+            await _httpClient.DeleteAsync($"api/works/{id}");
         }
         public async Task ChangeStatusAsync(int id)
         {

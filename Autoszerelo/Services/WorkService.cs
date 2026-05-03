@@ -23,9 +23,6 @@ namespace Autoszerelo.Services
         // --- ÚJ METÓDUS: ÜGYFÉL SAJÁT MUNKÁINAK LEKÉRÉSE ---
         public async Task<List<WorkDto>> GetWorksByCustomerIdAsync(int customerId)
         {
-            Console.WriteLine($"---> SERVICE: Meghívom a Repot ezzel az ID-val: {customerId}");
-            // A repository-n keresztül lekérjük az összes munkát alapból (szűrés nélkül)
-            // A GetWorksAsync metódusodat használjuk, csak a CustomerId-t adjuk meg szűrőnek
             var actionResult = await _worksRepository.GetWorksAsync(customerId: customerId);
             var works = actionResult.Value;
 
@@ -209,31 +206,41 @@ namespace Autoszerelo.Services
                 return new NotFoundResult();
             }
 
+            // --- Rendszám frissítése (csak ha érvényes) ---
             if (!string.IsNullOrEmpty(request.LicensePlate))
             {
                 string licensePlate = request.LicensePlate.ToUpper();
-                if (!Regex.IsMatch(licensePlate, pattern))
+                if (Regex.IsMatch(licensePlate, pattern))
                 {
-                    throw new ArgumentException("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.");
+                    work.LicensePlate = licensePlate;
                 }
-                work.LicensePlate = licensePlate;
             }
 
+            // --- Hiba leírása ---
             if (!string.IsNullOrEmpty(request.FaultDescription))
             {
                 work.FaultDescription = request.FaultDescription;
             }
 
+            // --- Kategória: Ha üres vagy érvénytelen, NEM nyúlunk hozzá, marad a régi ---
             if (!string.IsNullOrEmpty(request.Category))
             {
-                string category = request.Category.ToLower();
-                if (!allowedCategories.Contains(category))
+                // Tipp: Itt vedd ki a .ToLower()-t, ha a Regex/Lista nagybetűvel várja!
+                if (allowedCategories.Contains(request.Category))
                 {
-                    throw new ArgumentException("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.");
+                    work.Category = request.Category;
                 }
-                work.Category = category;
+                // else: Itt nem dobunk hibát, csak csendben ignoráljuk az érvénytelen kategóriát
             }
 
+            // --- Állapot frissítése (Ez az előbb kimaradt, most pótoljuk) ---
+            if (!string.IsNullOrEmpty(request.Status))
+            {
+                work.Status = request.Status;
+            }
+
+            // --- Újraszámolás ---
+            // Ha a kategória nem változott, akkor a régi kategóriával számol újra.
             work.EstimatedHours = _worksRepository.CalculateMultiplier(work.Category, work.seriousness, work.ProductionYear);
 
             await _worksRepository.UpdateAsync(work);
