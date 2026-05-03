@@ -6,7 +6,7 @@ using Shared;
 
 namespace Autoszerelo.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/customers")]
     [ApiController]
     public class CustomerController : ControllerBase
     {
@@ -28,12 +28,12 @@ namespace Autoszerelo.Controllers
 
         // --- GET: Egy ügyfél + autók ---
         [HttpGet("{id}")]
-        public async Task<ActionResult<CustomerDto>> GetCustomerWithCars([FromQuery]IdDto id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerWithCars(int id)
         {
-            var customer = await _customerService.GetCustomerByIdAsync(id.Id);
+            var customer = await _customerService.GetCustomerByIdAsync(id);
 
             if (customer == null)
-                return NotFound($"Nincs ügyfél ezzel az ID-val: {id.Id}");
+                return NotFound($"Nincs ügyfél ezzel az ID-val: {id}");
 
             return Ok(customer);
         }
@@ -65,9 +65,11 @@ namespace Autoszerelo.Controllers
         }
 
         // --- PUT: Frissítés ---
-        [HttpPut]
-        public async Task<IActionResult> PutCustomer([FromQuery] UpdateCustomerRequest customer)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCustomer(int id, [FromBody] UpdateCustomerRequest customer)
         {
+            customer.Id = id;
+
             try
             {
                 var updated = await _customerService.UpdateCustomerAsync(customer);
@@ -83,9 +85,9 @@ namespace Autoszerelo.Controllers
 
         // --- DELETE: Törlés ---
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer(IdDto id)
+        public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var success = await _customerService.DeleteCustomerAsync(id.Id);
+            var success = await _customerService.DeleteCustomerAsync(id);
 
             if (!success) return NotFound();
 
