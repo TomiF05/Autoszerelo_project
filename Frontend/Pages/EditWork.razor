@@ -89,16 +89,22 @@ else
     {
         if (_work != null)
         {
+            // 1. Az objektumnak tudnia kell, melyik rekordot módosítjuk!
             var updateRequest = new UpdateWorkRequest
             {
+                Id = Id, // <--- EZT PÓTOLD!
                 LicensePlate = _work.LicensePlate,
                 Category = _work.Category,
                 FaultDescription = _work.FaultDescription,
                 Status = _work.Status
+                // Ha van a DTO-ban ProductionYear vagy Seriousness, azokat is érdemes ideírni
             };
 
+            // 2. Küldés a Repository-nak
             await WorkRepository.UpdateWorkAsync(Id, updateRequest);
-            NavManager.NavigateTo("/works");
+        
+            // 3. Navigáció kényszerített újratöltéssel, hogy biztosan az új adatot lásd
+            NavManager.NavigateTo("/works", forceLoad: true);
         }
     }
 }
