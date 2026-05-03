@@ -7,12 +7,14 @@ using Xunit;
 using NSubstitute;
 using Autoszerelo.Data;
 using Autoszerelo.models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AutoszereloServicesTest
 {
     public class WorksServiceTest
     {
-        [Fact] 
+        [Fact]
         public async Task PostWork_ThrowsException_WhenLicensePlateIsInvalid()
         {
             var repository = Substitute.For<IWorksRepository>();
@@ -140,6 +142,66 @@ namespace AutoszereloServicesTest
             var workService = new WorkService(repository);
             var eredmeny = await Assert.ThrowsAsync<ArgumentException>(() => workService.GetWorkById(999));
             Assert.Equal("Hiba: Ilyen ID-jű munka nem létezik!", eredmeny.Message);
+        }
+        [Fact]
+        public async Task GetWorksAsync_ReturnsListOfWorks()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var worksList = new List<Works>
+            {
+                new Works {LicensePlate = "ABC-123", ProductionYear = 2010, FaultDescription = "Nem indul", Category = "motor", seriousness = 2, CustomerId = 1 },
+                new Works {LicensePlate = "DEF-456", ProductionYear = 2015, FaultDescription = "Fékhiba", Category = "fékberendezés", seriousness = 3, CustomerId = 2 }
+            };
+            repository.GetWorksAsync(null, null, null, null, null, null, null).Returns(worksList);
+            var ures = new GetWorkDto();
+            var eredmeny = await workService.GetWorksAsync(ures);
+            Assert.NotNull(eredmeny);
+            Assert.NotNull(eredmeny.Value);
+            Assert.Equal(2, eredmeny.Value.Count());
+        }
+        [Fact]
+        public async Task DeleteWork_ReturnsNotFound_WhenWorkDoesNotExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            repository.IdExists(999).Returns(false);
+            var eredmeny = await workService.DeleteWork(999);
+            Assert.IsType<NotFoundResult>(eredmeny);
+        }
+
+        [Fact]
+        public async Task DeleteWork_ReturnsOk_WhenWorkDoesExist()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var kamuMunka = new Works { Id = 1 };
+            repository.GetByIdAsync(1).Returns(kamuMunka);
+            var eredmeny = await workService.DeleteWork(1);
+            Assert.IsType<OkResult>(eredmeny);
+        }
+        [Fact]
+        public async Task ChangeStatus_ReturnsUpdatedWork()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var work = new Works
+            {
+                Id = 1,
+                LicensePlate = "ABC-123",
+                ProductionYear = 2010,
+                FaultDescription = "Nem indul",
+                Category = "motor",
+                seriousness = 2,
+                CustomerId = 1,
+                Status = "Elvégzés alatt"
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            repository.When(r => r.ChangeStatus(1)).Do(x => work.Status = "Befejezett");
+            var eredmeny = await workService.ChangeStatus(1);        
+            var kibontott = eredmeny.Value;
+            Assert.NotNull(kibontott);
+            Assert.Equal("Befejezett", kibontott.Status);
         }
     }
 }
