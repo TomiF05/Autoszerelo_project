@@ -232,5 +232,53 @@ namespace AutoszereloServicesTest
             var eredmeny = await workService.PutWork(hibas);
             Assert.IsType<NotFoundResult>(eredmeny);
         }
+
+        [Fact]
+        public async Task PutWork_ThrowsException_WhenCategoryIsNotContained()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var hibas = new UpdateWorkRequest
+            {
+                Id = 1,
+                Category = "RandomKategória"
+            };
+            var work = new Works
+            {
+                Id = 1
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
+            Assert.Equal("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.", uzenet.Message);
+        }
+
+        [Fact]
+        public async Task PutWork_ReturnsOkObjectResult_WhenWorkIsUpdated()
+        {
+            var repository = Substitute.For<IWorksRepository>();
+            var workService = new WorkService(repository);
+            var update = new UpdateWorkRequest
+            {
+                Id = 1,
+                LicensePlate = "ABC-123",
+                Category = "motor",
+                ProductionYear = 2010,
+                FaultDescription = "hibas"
+            };
+            var work = new Works
+            {
+                Id = 1,
+                LicensePlate = "ABD-123",
+                Category = "motor",
+                ProductionYear = 2010,
+                FaultDescription = "Hibas kezd lenni"
+            };
+            repository.GetByIdAsync(1).Returns(work);
+            var eredmeny = await workService.PutWork(update);
+            Assert.IsType<OkObjectResult>(eredmeny);
+
+        }
+
+        
     }
 }
