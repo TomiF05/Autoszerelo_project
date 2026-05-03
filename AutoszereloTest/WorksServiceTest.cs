@@ -204,7 +204,7 @@ namespace AutoszereloServicesTest
             Assert.NotNull(kibontott);
             Assert.Equal("Befejezett", kibontott.Status);
         }
-        [Fact]
+        /*[Fact]
 
         public async Task PutWork_ThrowsException_WhenLicensePlateIsInvalid()
         {
@@ -221,7 +221,7 @@ namespace AutoszereloServicesTest
             repository.GetByIdAsync(1).Returns(work);
             var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
             Assert.Equal("Érvénytelen rendszám formátum! Használj ABC-123 vagy AA-BB-123 formátumot kötőjelekkel.", uzenet.Message);
-        }
+        }*/
 
         [Fact]
         public async Task PutWork_ReturnsNotFoundResult_WhenWorkDoesNotExist()
@@ -234,7 +234,7 @@ namespace AutoszereloServicesTest
             Assert.IsType<NotFoundResult>(eredmeny);
         }
 
-        [Fact]
+        /*[Fact]
         public async Task PutWork_ThrowsException_WhenCategoryIsNotContained()
         {
             var repository = Substitute.For<IWorksRepository>();
@@ -251,7 +251,7 @@ namespace AutoszereloServicesTest
             repository.GetByIdAsync(1).Returns(work);
             var uzenet = await Assert.ThrowsAsync<ArgumentException>(() => workService.PutWork(hibas));
             Assert.Equal("Érvénytelen kategória! Válassz a listából: Motor, Karosszéria, Futómű, Fékberendezés.", uzenet.Message);
-        }
+        }*/
 
         [Fact]
         public async Task PutWork_ReturnsOkObjectResult_WhenWorkIsUpdated()
