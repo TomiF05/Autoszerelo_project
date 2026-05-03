@@ -15,5 +15,7 @@ namespace Frontend.Services
         Task DeleteWorkAsync(int id);
 
         Task ChangeStatusAsync(int id);
+
+        Task<List<WorkDto>> GetMyWorksAsync();
     }
 }

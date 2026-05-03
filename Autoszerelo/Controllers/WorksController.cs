@@ -1,15 +1,18 @@
 ﻿using Autoszerelo.Data;
 using Autoszerelo.models;
 using Autoszerelo.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Shared;
 using System.ComponentModel;
 using System.Net;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+
 namespace Autoszerelo.Controllers
 {
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     [ApiController]
     public class WorksController : ControllerBase
     {
@@ -21,7 +24,7 @@ namespace Autoszerelo.Controllers
 
         //lekéri az összes munkát , vagy a szűrési feltételeknek megfelelő munkákat, ahova nem írsz ,arra nem szűr.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery]GetWorkDto work)
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetWorks([FromQuery] GetWorkDto work)
         {
             return await _workService.GetWorksAsync(work);
         }
@@ -35,7 +38,7 @@ namespace Autoszerelo.Controllers
             await _workService.PostWork(
                 request.LicensePlate,
                 request.ProductionYear,
-                request.FaultDescription, 
+                request.FaultDescription,
                 request.Category,
                 request.Seriousness,
                 request.CustomerId
@@ -46,19 +49,21 @@ namespace Autoszerelo.Controllers
 
         // GET: api/Works/customer/5     megadja egy munka alapján a hozzá tartozó ügyfelet
         [HttpGet("customer")]
-        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId([FromQuery]IdDto id)
+        public async Task<ActionResult<CustomerDto>> GetCustomerByWorkId([FromQuery] IdDto id)
         {
             // Beemeljük (Include) a kapcsolódó Customer objektumot is a munkához
 
             return await _workService.GetCustomerByWorkId(id.Id);
         }
+
         //megadja id alapján a munkát
         [HttpGet("GetWorkById")]
         public async Task<ActionResult<WorkDto>> GetWorkById(IdDto id)
         {
             return await _workService.GetWorkById(id.Id);
-            
+
         }
+
         //id alpján töröl
         [HttpDelete]
         public async Task<IActionResult> DeleteWork(IdDto id)
@@ -66,6 +71,7 @@ namespace Autoszerelo.Controllers
             // 1. Megkeressük a munkát
             return await _workService.DeleteWork(id.Id);
         }
+
         // id alapján a kitöltött mezőket módosítja, az üresen hagyottakat változatlanul hagyja, munkaórát újraszámolja.
         [HttpPut]
         public async Task<IActionResult> PutWork([FromQuery] UpdateWorkRequest? request)
@@ -73,6 +79,7 @@ namespace Autoszerelo.Controllers
             // Átadjuk a teljes, Frontendtől kapott dobozt a Service-nek
             return await _workService.PutWork(request);
         }
+
         //státusz léptető
         [HttpPut("change-status")]
         public async Task<ActionResult<WorkDto>> ChangeStatus(IdDto id)
@@ -80,6 +87,27 @@ namespace Autoszerelo.Controllers
             return await _workService.ChangeStatus(id.Id);
         }
 
+        // --- ÚJ VÉGPONT: BEJELENTKEZETT ÜGYFÉL SAJÁT AUTÓINAK LEKÉRÉSE ---
+        [HttpGet("my-works")]
+        [Authorize] // Ide csak az jöhet, akinek van tokenje (be van jelentkezve)
+        public async Task<ActionResult<IEnumerable<WorkDto>>> GetMyWorks()
+        {
+            // 1. Kinyerjük az ID-t a belépőkártyából (Tokenből)
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            Console.WriteLine($"DEBUG: Bejelentkezett User ID-ja a Tokenből: {userIdString}");
+
+            // Ha valamiért nem tudja számmá alakítani, hibát dob
+            if (!int.TryParse(userIdString, out int customerId))
+            {
+                return Unauthorized("Hiba a felhasználó azonosításakor!");
+            }
+
+            // 2. Meghívjuk a Service-t, hogy adja vissza csak ennek az ügyfélnek a kocsijait
+            var myWorks = await _workService.GetWorksByCustomerIdAsync(customerId);
+
+            return Ok(myWorks);
+        }
 
     }
 }

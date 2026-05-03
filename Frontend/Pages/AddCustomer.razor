@@ -23,6 +23,13 @@
                 <ValidationMessage For="@(() => _request.Email)" class="text-danger" />
             </div>
 
+            @* --- ÚJ JELSZÓ MEZŐ --- *@
+            <div class="mb-3">
+                <label class="form-label fw-bold">Jelszó:</label>
+                <InputText type="password" @bind-Value="_request.Password" class="form-control" placeholder="Ügyfél titkos jelszava" />
+                <ValidationMessage For="@(() => _request.Password)" class="text-danger" />
+            </div>
+
             <div class="mb-3">
                 <label class="form-label fw-bold">Lakcím:</label>
                 <InputText @bind-Value="_request.Address" class="form-control" placeholder="1234 Budapest, Példa u. 1." />
@@ -42,6 +49,9 @@
 
     private async Task HandleSubmit()
     {
+        // Érdemes lehet fixen beállítani, hogy az újonnan felvitt ügyfelek csak sima "User" jogot kapjanak
+        // _request.Role = "User"; // (Ha van ilyen meződ a kérésben)
+        
         await CustomerRepo.AddAsync(_request);
         NavManager.NavigateTo("/customers");
     }
