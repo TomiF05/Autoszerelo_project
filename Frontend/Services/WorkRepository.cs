@@ -1,5 +1,6 @@
 ﻿using Shared;
 using System.Net.Http.Json;
+using static System.Net.WebRequestMethods;
 
 namespace Frontend.Services
 {
@@ -46,6 +47,19 @@ namespace Frontend.Services
         {
             // A null azt jelenti, hogy nem küldünk extra JSON dobozt, csak magát az URL-t hívjuk meg
             await _httpClient.PutAsync($"/api/works/change-status/{id}", null);
+        }
+        public async Task<List<WorkDto>> GetMyWorksAsync()
+        {
+            try
+            {
+                // A Backend címe: api/Works/my-works
+                var response = await _httpClient.GetFromJsonAsync<List<WorkDto>>("api/Works/my-works");
+                return response ?? new List<WorkDto>();
+            }
+            catch (Exception)
+            {
+                return new List<WorkDto>();
+            }
         }
     }
 }
