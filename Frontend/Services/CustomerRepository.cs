@@ -17,13 +17,12 @@ namespace Frontend.Services
 
         public async Task<IEnumerable<CustomerDto>> GetAllAsync()
         {
-            // Írd át az "api/Customer"-t "api/customers"-re!
             return await _httpClient.GetFromJsonAsync<IEnumerable<CustomerDto>>("api/customers");
         }
 
         public async Task AddAsync(AddCustomerRequest request)
         {
-            await _httpClient.PostAsJsonAsync("api/Customer", request);
+            await _httpClient.PostAsJsonAsync("api/customers", request);
         }
 
         public async Task<bool> DeleteAsync(int id)
