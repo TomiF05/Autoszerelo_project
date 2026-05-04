@@ -225,8 +225,9 @@ namespace Autoszerelo.Services
             // --- Kategória: Ha üres vagy érvénytelen, NEM nyúlunk hozzá, marad a régi ---
             if (!string.IsNullOrEmpty(request.Category))
             {
+                string normalizedCategory = request.Category.ToLower();
                 // Tipp: Itt vedd ki a .ToLower()-t, ha a Regex/Lista nagybetűvel várja!
-                if (allowedCategories.Contains(request.Category))
+                if (allowedCategories.Contains(normalizedCategory))
                 {
                     work.Category = request.Category;
                 }
@@ -236,7 +237,9 @@ namespace Autoszerelo.Services
             // --- Állapot frissítése (Ez az előbb kimaradt, most pótoljuk) ---
             if (!string.IsNullOrEmpty(request.Status))
             {
-                if(!stat.Contains(request.Status.ToLower()))
+                string normalizedStatus = request.Status.ToLower();
+
+                if (!stat.Contains(normalizedStatus))
                 {
                     return new BadRequestObjectResult(new { message = "Nem megfelelő státusz! Ilyen státusz nem létezik a rendszerben." });
                 }

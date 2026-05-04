@@ -118,7 +118,10 @@ else
                 LicensePlate = _work.LicensePlate,
                 Category = _work.Category,
                 FaultDescription = _work.FaultDescription,
-                Status = _work.Status
+                Status = _work.Status,
+                CustomerId = _work.CustomerId,         
+                ProductionYear = _work.ProductionYear, 
+                Seriousness = _work.Seriousness
             };
 
             await WorkRepository.UpdateWorkAsync(Id, updateRequest);
