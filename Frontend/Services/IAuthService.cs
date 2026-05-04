@@ -1,5 +1,4 @@
-﻿using Shared; // Feltételezve, hogy a LoginRequest a Shared projektben van
-
+﻿using Shared; 
 namespace Frontend.Services
 {
     public interface IAuthService

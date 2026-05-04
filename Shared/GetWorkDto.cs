@@ -14,8 +14,6 @@ namespace Shared
         public string? FaultDescription { get; set; }
         public int? Seriousness { get; set; }
         public string? Status { get; set; }
-
-        //ezt a backend számolja 
         
     }
 }

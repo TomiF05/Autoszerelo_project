@@ -25,8 +25,5 @@ namespace Shared
         [Range(1,10)]
         public int? Seriousness { get; set; }
         public string? Status { get; set; }
-
-        //[RegularExpression(@"^(Felvett Munka|Elvégzés alatt|Befejezett)$")]
-        //public string? Status { get; set; }
     }
 }

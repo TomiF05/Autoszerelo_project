@@ -27,11 +27,9 @@ namespace Frontend.Services
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (result != null)
                 {
-                    // Token és Role mentése a böngészőbe
                     await _js.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
                     await _js.InvokeVoidAsync("localStorage.setItem", "userRole", result.Role);
 
-                    // Szólunk a rendszernek, hogy bejelentkeztünk
                     ((CustomAuthStateProvider)_authStateProvider).NotifyAuthState();
 
                     return result;
@@ -42,11 +40,9 @@ namespace Frontend.Services
 
         public async Task LogoutAsync()
         {
-            // Törlés a böngészőből
             await _js.InvokeVoidAsync("localStorage.removeItem", "authToken");
             await _js.InvokeVoidAsync("localStorage.removeItem", "userRole");
 
-            // Szólunk a rendszernek, hogy kijelentkeztünk
             ((CustomAuthStateProvider)_authStateProvider).NotifyAuthState();
         }
     }
